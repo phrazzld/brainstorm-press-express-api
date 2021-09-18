@@ -2,7 +2,7 @@
   "name": "brainstorm-press-express-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.ts",
   "scripts": {
     "start": "ts-node app.ts",
     "dev": "ts-node-dev app.ts",
@@ -12,11 +12,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@radar/lnrpc": "^0.11.1-beta.1",
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
+    "@types/express-ws": "^3.0.1",
     "@types/node": "^16.9.1",
+    "@types/uuid": "^8.3.1",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-ws": "^5.0.2",
     "ts-node": "^10.2.1",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.12",
