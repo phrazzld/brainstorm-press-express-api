@@ -4,9 +4,18 @@ import db from "./posts-db";
 
 // POST /api/connect
 export const connect = async (req: Request, res: Response) => {
+  console.group("Request made to connect to LND")
   const { host, cert, macaroon } = req.body;
+  console.debug("host:", host)
+  console.debug("cert:", cert)
+  console.debug("macaroon:", macaroon)
   const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
+  console.debug("token:", token)
+  console.debug("pubkey:", pubkey)
+  console.debug("Adding node...")
   await db.addNode({ host, cert, macaroon, token, pubkey });
+  console.debug("Responding to client with token...")
+  console.groupEnd()
   res.send({ token });
 };
 

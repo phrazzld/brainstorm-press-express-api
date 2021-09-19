@@ -5,7 +5,7 @@ export interface Post {
   id: number;
   title: string;
   content: string;
-  username: string;
+  author: string;
   votes: number;
   signature: string;
   pubkey: string;
@@ -56,7 +56,7 @@ class PostsDb extends EventEmitter {
   };
 
   createPost = async (
-    username: string,
+    author: string,
     title: string,
     content: string,
     signature: string,
@@ -69,7 +69,7 @@ class PostsDb extends EventEmitter {
       id: maxId + 1,
       title,
       content,
-      username,
+      author,
       votes: 0,
       signature,
       pubkey,
