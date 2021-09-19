@@ -9,7 +9,6 @@ export interface Post {
   votes: number;
   signature: string;
   pubkey: string;
-  verified: boolean;
 }
 
 export const SocketEvents = {
@@ -73,7 +72,6 @@ class PostsDb extends EventEmitter {
       votes: 0,
       signature,
       pubkey,
-      verified: false,
     };
     this._data.posts.push(post);
 
@@ -88,16 +86,6 @@ class PostsDb extends EventEmitter {
       throw new Error("Post not found");
     }
     post.votes += 1;
-    await this.persist();
-    this.emit(PostEvents.updated, post);
-  };
-
-  verifyPost = async (postId: number) => {
-    const post = this._data.posts.find((p) => p.id === postId);
-    if (!post) {
-      throw new Error("Post not found");
-    }
-    post.verified = true;
     await this.persist();
     this.emit(PostEvents.updated, post);
   };

@@ -93,40 +93,6 @@ export const upvotePost = async (req: Request, res: Response) => {
   res.send(post);
 };
 
-// POST /api/posts/:id/verify
-export const verifyPost = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { token } = req.body;
-
-  // Find the post
-  const post = db.getPostById(parseInt(id));
-  if (!post) {
-    throw new Error("Post not found");
-  }
-
-  // Find the node that's verifying this post
-  const verifyingNode = db.getNodeByToken(token);
-  if (!verifyingNode) {
-    throw new Error("Your node could not be found. Try reconnecting.");
-  }
-
-  if (post.pubkey === verifyingNode.pubkey) {
-    throw new Error("You cannot verify your own posts.");
-  }
-
-  const rpc = nodeManager.getRpc(verifyingNode.token);
-  const msg = Buffer.from(post.content).toString("base64");
-  const { signature } = post;
-  const { pubkey, valid } = await rpc.verifyMessage({ msg, signature });
-
-  if (!valid || pubkey !== post.pubkey) {
-    throw new Error("Verification failed. Signature is invalid.");
-  }
-
-  db.verifyPost(post.id);
-  res.send(post);
-};
-
 // POST /api/posts/:id/invoice
 export const postInvoice = async (req: Request, res: Response) => {
   const { id } = req.params;
