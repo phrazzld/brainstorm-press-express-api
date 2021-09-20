@@ -1,25 +1,24 @@
 import { Request, Response } from "express";
+import { LndNodeModel, PostModel } from "./models";
 import nodeManager from "./node-manager";
 import db from "./posts-db";
 
 // POST /api/connect
+// Connect to an LndNode
 export const connect = async (req: Request, res: Response) => {
-  console.group("Request made to connect to LND")
-  const { host, cert, macaroon } = req.body;
-  console.debug("host:", host)
-  console.debug("cert:", cert)
-  console.debug("macaroon:", macaroon)
-  const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
-  console.debug("token:", token)
-  console.debug("pubkey:", pubkey)
-  console.debug("Adding node...")
-  await db.addNode({ host, cert, macaroon, token, pubkey });
-  console.debug("Responding to client with token...")
-  console.groupEnd()
-  res.send({ token });
+  try {
+    const { host, cert, macaroon } = req.body;
+    const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
+    const node = new LndNodeModel({ host, cert, macaroon, token, pubkey });
+    await node.save();
+    res.status(201).send(node);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
 // GET /api/info
+// Get info from an LndNode
 export const getInfo = async (req: Request, res: Response) => {
   const { token } = req.body;
   if (!token) {
@@ -27,7 +26,7 @@ export const getInfo = async (req: Request, res: Response) => {
   }
 
   // Find the node making the request
-  const node = db.getNodeByToken(token);
+  const node = await LndNodeModel.findOne({ token }).exec();
   if (!node) {
     throw new Error("Node not found with this token");
   }
@@ -40,27 +39,28 @@ export const getInfo = async (req: Request, res: Response) => {
 };
 
 // GET /api/posts
-export const getPosts = (req: Request, res: Response) => {
-  const posts = db.getAllPosts();
-  res.send(posts);
+export const getPosts = async (req: Request, res: Response) => {
+  try {
+    const posts = await PostModel.find({});
+    res.send(posts);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
 // POST /api/posts
 export const createPost = async (req: Request, res: Response) => {
-  const { token, title, content } = req.body;
-  const rpc = nodeManager.getRpc(token);
-
-  const { alias, identityPubkey: pubkey } = await rpc.getInfo();
-  // lnd requires the message being signed to be base64 encoded
-  const msg = Buffer.from(content).toString("base64");
-  // Sign the message to obtain a signature
-  const { signature } = await rpc.signMessage({ msg });
-
-  const post = await db.createPost(alias, title, content, signature, pubkey);
-  res.status(201).send(post);
+  try {
+    const post = new PostModel(req.body);
+    await post.save();
+    res.status(201).send(post);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
 // POST /api/posts/:id/upvote
+// TODO: Rework this into pay-to-read logic
 export const upvotePost = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { hash } = req.body;
@@ -71,13 +71,14 @@ export const upvotePost = async (req: Request, res: Response) => {
   }
 
   // Find the post
-  const post = db.getPostById(parseInt(id));
+  const post = await PostModel.findById(id).exec();
   if (!post) {
     throw new Error("Post not found");
   }
 
   // Find the node that made this post
-  const node = db.getNodeByPubkey(post.pubkey);
+  // TODO: Go through post.user.node, since posts no longer have pubkeys
+  const node = await LndNodeModel.findOne({}).exec();
   if (!node) {
     throw new Error("Node not found for this post");
   }
@@ -98,12 +99,13 @@ export const postInvoice = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // Find the post
-  const post = db.getPostById(parseInt(id));
+  const post = await PostModel.findById(id).exec();
   if (!post) {
     throw new Error("Post not found.");
   }
 
-  const node = db.getNodeByPubkey(post.pubkey);
+  // TODO: Go through post.user.node, since posts no longer have pubkeys
+  const node = await LndNodeModel.findOne({}).exec();
   if (!node) {
     throw new Error("Node not found for this post.");
   }

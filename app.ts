@@ -1,9 +1,12 @@
 import cors from "cors";
 import express, { Request, Response } from "express";
 import expressWs from "express-ws";
+import mongoose from "mongoose";
 import nodeManager, { NodeEvents } from "./node-manager";
-import db, { Post, PostEvents, SocketEvents } from "./posts-db";
+import { SocketEvents } from "./posts-db";
 import * as routes from "./routes";
+
+require("dotenv").config();
 
 const PORT: number = 4000;
 
@@ -11,6 +14,18 @@ const PORT: number = 4000;
 const { app } = expressWs(express());
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
+
+// Database setup
+const mongoUri: string = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+
+mongoose.connect(mongoUri);
+const db = mongoose.connection;
+db.on("error", (err) => {
+  console.error(err);
+});
+db.once("open", () => {
+  console.log("Successfully connected to database.");
+});
 
 // Middleware to grab the token from the header and add it to the req.body
 app.use((req, res, next) => {
@@ -32,10 +47,6 @@ const catchAsyncErrors = (
 };
 
 // Routes
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello, World!");
-});
-
 app.post("/api/connect", catchAsyncErrors(routes.connect));
 app.get("/api/info", catchAsyncErrors(routes.getInfo));
 app.get("/api/posts", catchAsyncErrors(routes.getPosts));
@@ -45,24 +56,17 @@ app.post("/api/posts/:id/upvote", catchAsyncErrors(routes.upvotePost));
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
-  // When a websocket connection is made, add listeners for posts and invoices
-  const postsListener = (posts: Array<Post>) => {
-    const event = { type: SocketEvents.postUpdated, data: posts };
-    ws.send(JSON.stringify(event));
-  };
-
+  // When a websocket connection is made, add listeners for invoices
   const paymentsListener = (info: any) => {
     const event = { type: SocketEvents.invoicePaid, data: info };
     ws.send(JSON.stringify(event));
   };
 
   // Add listeners to send data over the socket
-  db.on(PostEvents.updated, postsListener);
   nodeManager.on(NodeEvents.invoicePaid, paymentsListener);
 
   // Remove listeners when the socket is closed
   ws.on("close", () => {
-    db.off(PostEvents.updated, postsListener);
     nodeManager.off(NodeEvents.invoicePaid, paymentsListener);
   });
 });
@@ -70,8 +74,4 @@ app.ws("/api/events", (ws) => {
 // Start server
 app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}`);
-
-  // Restore data from DB file
-  await db.restore();
-  await nodeManager.reconnectNodes(db.getAllNodes());
 });
