@@ -1,5 +1,7 @@
+import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
-import { LndNodeModel, PostModel } from "./models";
+import jwt from "jsonwebtoken";
+import { LndNodeModel, PostModel, UserModel } from "./models";
 import nodeManager from "./node-manager";
 import db from "./posts-db";
 
@@ -120,3 +122,56 @@ export const postInvoice = async (req: Request, res: Response) => {
     amount,
   });
 };
+
+// POST /api/users
+// Register a new user
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    // Get user input
+    const { name, blog, password } = req.body;
+
+    // Validate user input
+    if (!(name && blog && password)) {
+      res.status(400).send("All inputs are required.");
+    }
+
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ name }).exec();
+    if (existingUser) {
+      res.status(409).send("User already exists. Please login.");
+    }
+
+    // Encrypt password
+    const encryptedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const newUser = await UserModel.create({
+      name,
+      blog,
+      password: encryptedPassword,
+    });
+
+    // Create JWT token
+    const jwtToken = jwt.sign(
+      { user_id: newUser._id, name },
+      process.env.TOKEN_KEY as string,
+      { expiresIn: "2h" }
+    );
+
+    // Save JWT token to the new user
+    newUser.jwtToken = jwtToken;
+
+    // Return the new user
+    res.status(201).send(newUser);
+  } catch (err) {
+    console.error(err)
+    if (err instanceof Error) {
+      throw new Error(err.message)
+    } else {
+      console.warn(err)
+    }
+  }
+};
+
+// POST /api/login
+export const login = async (req: Request, res: Response) => {};

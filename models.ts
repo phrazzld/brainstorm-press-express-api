@@ -46,12 +46,16 @@ export const LndNodeModel = model("LndNode", LndNodeSchema);
 interface User {
   name: string;
   blog: string;
+  password: string;
+  jwtToken: string;
   // nodeId: string;
 }
 
 const UserSchema = new Schema<User>({
   name: { type: String, required: true },
   blog: { type: String, required: true },
+  password: { type: String, required: true },
+  jwtToken: { type: String }
 });
 
 export const UserModel = model("User", UserSchema);

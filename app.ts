@@ -53,6 +53,8 @@ app.get("/api/posts", catchAsyncErrors(routes.getPosts));
 app.post("/api/posts", catchAsyncErrors(routes.createPost));
 app.post("/api/posts/:id/invoice", catchAsyncErrors(routes.postInvoice));
 app.post("/api/posts/:id/upvote", catchAsyncErrors(routes.upvotePost));
+app.post("/api/users", catchAsyncErrors(routes.createUser))
+app.post("/api/login", catchAsyncErrors(routes.login))
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
