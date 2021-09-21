@@ -5,6 +5,15 @@ import { LndNodeModel, PostModel, UserModel } from "./models";
 import nodeManager from "./node-manager";
 import db from "./posts-db";
 
+const handleError = (err: any) => {
+  console.error(err);
+  if (err instanceof Error) {
+    throw new Error(err.message);
+  } else {
+    console.warn(err);
+  }
+};
+
 // POST /api/connect
 // Connect to an LndNode
 export const connect = async (req: Request, res: Response) => {
@@ -15,7 +24,7 @@ export const connect = async (req: Request, res: Response) => {
     await node.save();
     res.status(201).send(node);
   } catch (err) {
-    res.status(500).send(err);
+    handleError(err);
   }
 };
 
@@ -46,7 +55,7 @@ export const getPosts = async (req: Request, res: Response) => {
     const posts = await PostModel.find({});
     res.send(posts);
   } catch (err) {
-    res.status(500).send(err);
+    handleError(err);
   }
 };
 
@@ -57,7 +66,7 @@ export const createPost = async (req: Request, res: Response) => {
     await post.save();
     res.status(201).send(post);
   } catch (err) {
-    res.status(500).send(err);
+    handleError(err);
   }
 };
 
@@ -164,14 +173,40 @@ export const createUser = async (req: Request, res: Response) => {
     // Return the new user
     res.status(201).send(newUser);
   } catch (err) {
-    console.error(err)
-    if (err instanceof Error) {
-      throw new Error(err.message)
-    } else {
-      console.warn(err)
-    }
+    handleError(err);
   }
 };
 
 // POST /api/login
-export const login = async (req: Request, res: Response) => {};
+export const login = async (req: Request, res: Response) => {
+  try {
+    // Get user input
+    const { name, password } = req.body;
+
+    // Validate user input
+    if (!(name && password)) {
+      res.status(400).send("All input is required.");
+    }
+
+    // Find user
+    const user = await UserModel.findOne({ name }).exec();
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // Create JWT
+      const jwtToken = jwt.sign(
+        { user_id: user._id, name },
+        process.env.TOKEN_KEY as string,
+        { expiresIn: "2h" }
+      );
+
+      // Save JWT to user
+      user.jwtToken = jwtToken;
+
+      // Return logged in user
+      res.status(200).send(user);
+    }
+    res.status(400).send("Invalid credentials");
+  } catch (err) {
+    handleError(err);
+  }
+};
