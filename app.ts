@@ -1,5 +1,5 @@
 import cors from "cors";
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import expressWs from "express-ws";
 import mongoose from "mongoose";
 import nodeManager, { NodeEvents } from "./node-manager";
@@ -27,39 +27,11 @@ db.once("open", () => {
   console.log("Successfully connected to database.");
 });
 
-// Middleware to grab the token from the header and add it to the req.body
-//app.use((req: Request, res: Response, next: NextFunction) => {
-//  req.body.token = req.header("X-Token");
-//  next();
-//});
-
-//const catchAsyncErrors = (
-//  routeHandler: (req: Request, res: Response) => Promise<void> | void
-//) => {
-//  return async (req: Request, res: Response) => {
-//    try {
-//      const promise = routeHandler(req, res);
-//      if (promise) await promise;
-//    } catch (err: any) {
-//      return res.status(400).send({ error: err.message });
-//    }
-//  };
-//};
-
-// Routes
-//app.post("/api/connect", catchAsyncErrors(routes.connect));
-//app.get("/api/info", catchAsyncErrors(routes.getInfo));
-//app.get("/api/posts", catchAsyncErrors(routes.getPosts));
-//app.post("/api/posts", catchAsyncErrors(routes.createPost));
-//app.post("/api/posts/:id/invoice", catchAsyncErrors(routes.postInvoice));
-//app.post("/api/posts/:id/upvote", catchAsyncErrors(routes.upvotePost));
-//app.post("/api/users", catchAsyncErrors(routes.createUser));
-//app.post("/api/login", catchAsyncErrors(routes.login));
-
 app.post("/api/connect", routes.connect);
 app.get("/api/info", routes.getInfo);
 app.get("/api/posts", routes.getPosts);
 app.post("/api/posts", routes.createPost);
+app.delete("/api/posts/:id", routes.deletePost);
 app.post("/api/posts/:id/invoice", routes.postInvoice);
 app.post("/api/posts/:id/upvote", routes.upvotePost);
 app.post("/api/users", routes.createUser);

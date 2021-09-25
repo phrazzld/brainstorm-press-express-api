@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import {NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import * as _ from 'lodash';
-import {LndNodeModel, PostModel, UserModel} from "./models";
+import * as _ from "lodash";
+import { LndNodeModel, PostModel, UserModel } from "./models";
 import nodeManager from "./node-manager";
 import db from "./posts-db";
 
@@ -16,27 +16,27 @@ const handleError = (err: any) => {
 };
 
 export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.get("authorization")
+  const authHeader = req.get("authorization");
 
   if (!authHeader) {
-    return res.status(403).send("No authorization header sent")
+    return res.status(403).send("No authorization header sent");
   }
 
-  const jwtToken = authHeader.replace("Bearer", "").trim()
+  const jwtToken = authHeader.replace("Bearer", "").trim();
 
   if (!jwtToken) {
-    return res.status(403).send("JWT required for authorization")
+    return res.status(403).send("JWT required for authorization");
   }
 
   try {
-    const decoded = jwt.verify(jwtToken, process.env.TOKEN_KEY as string)
-    _.assign(req, { user: decoded })
+    const decoded = jwt.verify(jwtToken, process.env.TOKEN_KEY as string);
+    _.assign(req, { user: decoded });
   } catch (err) {
-    return res.status(401).send("Invalid JWT")
+    return res.status(401).send("Invalid JWT");
   }
 
-  return next()
-}
+  return next();
+};
 
 // POST /api/connect
 // Connect to an LndNode
@@ -89,6 +89,17 @@ export const createPost = async (req: Request, res: Response) => {
     const post = new PostModel(req.body);
     await post.save();
     return res.status(201).send(post);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// DELETE /api/posts/:id
+export const deletePost = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await PostModel.deleteOne({ _id: id }).exec();
+    return res.status(204).send("Post deleted successfully");
   } catch (err) {
     handleError(err);
   }
