@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
-import { Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import jwt from "jsonwebtoken";
-import { LndNodeModel, PostModel, UserModel } from "./models";
+import * as _ from 'lodash';
+import {LndNodeModel, PostModel, UserModel} from "./models";
 import nodeManager from "./node-manager";
 import db from "./posts-db";
 
@@ -14,6 +15,29 @@ const handleError = (err: any) => {
   }
 };
 
+export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.get("authorization")
+
+  if (!authHeader) {
+    return res.status(403).send("No authorization header sent")
+  }
+
+  const jwtToken = authHeader.replace("Bearer", "").trim()
+
+  if (!jwtToken) {
+    return res.status(403).send("JWT required for authorization")
+  }
+
+  try {
+    const decoded = jwt.verify(jwtToken, process.env.TOKEN_KEY as string)
+    _.assign(req, { user: decoded })
+  } catch (err) {
+    return res.status(401).send("Invalid JWT")
+  }
+
+  return next()
+}
+
 // POST /api/connect
 // Connect to an LndNode
 export const connect = async (req: Request, res: Response) => {
@@ -22,7 +46,7 @@ export const connect = async (req: Request, res: Response) => {
     const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
     const node = new LndNodeModel({ host, cert, macaroon, token, pubkey });
     await node.save();
-    res.status(201).send(node);
+    return res.status(201).send(node);
   } catch (err) {
     handleError(err);
   }
@@ -46,14 +70,14 @@ export const getInfo = async (req: Request, res: Response) => {
   const rpc = nodeManager.getRpc(node.token);
   const { alias, identityPubkey: pubkey } = await rpc.getInfo();
   const { balance } = await rpc.channelBalance();
-  res.send({ alias, balance, pubkey });
+  return res.send({ alias, balance, pubkey });
 };
 
 // GET /api/posts
 export const getPosts = async (req: Request, res: Response) => {
   try {
     const posts = await PostModel.find({});
-    res.send(posts);
+    return res.send(posts);
   } catch (err) {
     handleError(err);
   }
@@ -64,7 +88,7 @@ export const createPost = async (req: Request, res: Response) => {
   try {
     const post = new PostModel(req.body);
     await post.save();
-    res.status(201).send(post);
+    return res.status(201).send(post);
   } catch (err) {
     handleError(err);
   }
@@ -102,7 +126,7 @@ export const upvotePost = async (req: Request, res: Response) => {
   }
 
   db.upvotePost(post.id);
-  res.send(post);
+  return res.send(post);
 };
 
 // POST /api/posts/:id/invoice
@@ -141,13 +165,13 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Validate user input
     if (!(name && blog && password)) {
-      res.status(400).send("All inputs are required.");
+      return res.status(400).send("All inputs are required.");
     }
 
     // Check if user already exists
     const existingUser = await UserModel.findOne({ name }).exec();
     if (existingUser) {
-      res.status(409).send("User already exists. Please login.");
+      return res.status(409).send("User already exists. Please login.");
     }
 
     // Encrypt password
@@ -171,7 +195,7 @@ export const createUser = async (req: Request, res: Response) => {
     newUser.jwtToken = jwtToken;
 
     // Return the new user
-    res.status(201).send(newUser);
+    return res.status(201).send(newUser);
   } catch (err) {
     handleError(err);
   }
@@ -185,7 +209,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Validate user input
     if (!(name && password)) {
-      res.status(400).send("All input is required.");
+      return res.status(400).send("All input is required.");
     }
 
     // Find user
@@ -203,9 +227,9 @@ export const login = async (req: Request, res: Response) => {
       user.jwtToken = jwtToken;
 
       // Return logged in user
-      res.status(200).send(user);
+      return res.status(200).send(user);
     }
-    res.status(400).send("Invalid credentials");
+    return res.status(400).send("Invalid credentials");
   } catch (err) {
     handleError(err);
   }
