@@ -83,6 +83,19 @@ export const getPosts = async (req: Request, res: Response) => {
   }
 };
 
+// GET /api/posts/:id
+export const getPost = async (req: Request, res: Response) => {
+  try {
+    const post = await PostModel.findById(req.params.id).exec()
+    if (!post) {
+      throw new Error("No post found")
+    }
+    return res.status(200).send(post)
+  } catch (err) {
+    handleError(err)
+  }
+}
+
 // POST /api/posts
 export const createPost = async (req: Request, res: Response) => {
   try {
