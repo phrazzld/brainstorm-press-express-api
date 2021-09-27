@@ -52,10 +52,11 @@ export const connect = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/info
+// GET /api/node/info
 // Get info from an LndNode
+// TODO: Rethink auth strat w/JWT vs LND
 export const getInfo = async (req: Request, res: Response) => {
-  const { token } = req.body;
+  const token = req.get("authorization");
   if (!token) {
     throw new Error("Your node is not connected");
   }
