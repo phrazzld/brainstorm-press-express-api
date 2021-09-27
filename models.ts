@@ -7,12 +7,14 @@ import { model, Schema } from "mongoose";
 interface Post {
   title: string;
   content: string;
+  price: number;
   // userId: string;
 }
 
 const PostSchema = new Schema<Post>({
   title: { type: String, required: true },
   content: { type: String, required: true },
+  price: { type: Number, required: true }
 });
 
 export const PostModel = model("Post", PostSchema);
