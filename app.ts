@@ -29,7 +29,8 @@ db.once("open", () => {
 
 app.post("/api/connect", routes.connect);
 app.get("/api/info", routes.getInfo);
-app.get("/api/posts/:id", routes.getPost)
+app.get("/api/posts/:id", routes.getPost);
+app.put("/api/posts/:id", routes.updatePost);
 app.get("/api/posts", routes.getPosts);
 app.post("/api/posts", routes.createPost);
 app.delete("/api/posts/:id", routes.deletePost);
