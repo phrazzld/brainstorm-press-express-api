@@ -8,13 +8,14 @@ interface Post {
   title: string;
   content: string;
   price: number;
-  // userId: string;
+  userId: string;
 }
 
 const PostSchema = new Schema<Post>({
   title: { type: String, required: true },
   content: { type: String, required: true },
-  price: { type: Number, required: true }
+  price: { type: Number, required: true },
+  userId: { type: String, required: true }
 });
 
 export const PostModel = model("Post", PostSchema);
@@ -50,14 +51,15 @@ interface User {
   blog: string;
   password: string;
   jwtToken: string;
-  // nodeId: string;
+  nodeId: string;
 }
 
 const UserSchema = new Schema<User>({
   name: { type: String, required: true },
   blog: { type: String, required: true },
   password: { type: String, required: true },
-  jwtToken: { type: String }
+  jwtToken: { type: String },
+  nodeId: { type: String }
 });
 
 export const UserModel = model("User", UserSchema);

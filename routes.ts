@@ -44,7 +44,14 @@ export const connect = async (req: Request, res: Response) => {
   try {
     const { host, cert, macaroon } = req.body;
     const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
-    const node = new LndNodeModel({ host, cert, macaroon, token, pubkey });
+    const node = new LndNodeModel({
+      host,
+      cert,
+      macaroon,
+      token,
+      pubkey,
+      userId: (<any>req).user.user_id,
+    });
     await node.save();
     return res.status(201).send(node);
   } catch (err) {
@@ -113,6 +120,7 @@ export const updatePost = async (req: Request, res: Response) => {
 // POST /api/posts
 export const createPost = async (req: Request, res: Response) => {
   try {
+    _.assign(req.body, { userId: (<any>req).user.user_id });
     const post = new PostModel(req.body);
     await post.save();
     return res.status(201).send(post);

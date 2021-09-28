@@ -27,13 +27,13 @@ db.once("open", () => {
   console.log("Successfully connected to database.");
 });
 
-app.post("/api/connect", routes.connect);
+app.post("/api/connect", routes.verifyJWT, routes.connect);
 app.get("/api/node/info", routes.getInfo);
 app.get("/api/posts/:id", routes.getPost);
-app.put("/api/posts/:id", routes.updatePost);
+app.put("/api/posts/:id", routes.verifyJWT, routes.updatePost);
 app.get("/api/posts", routes.getPosts);
-app.post("/api/posts", routes.createPost);
-app.delete("/api/posts/:id", routes.deletePost);
+app.post("/api/posts", routes.verifyJWT, routes.createPost);
+app.delete("/api/posts/:id", routes.verifyJWT, routes.deletePost);
 app.post("/api/posts/:id/invoice", routes.postInvoice);
 app.post("/api/posts/:id/upvote", routes.upvotePost);
 app.post("/api/users", routes.createUser);
