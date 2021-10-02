@@ -1,7 +1,7 @@
 import createLnRpc, { LnRpc } from "@radar/lnrpc";
 import { EventEmitter } from "events";
 import { v4 as uuidv4 } from "uuid";
-import { LndNode } from "./posts-db";
+import { LndNode } from "./models";
 
 export const NodeEvents = {
   invoicePaid: "invoice-paid",
@@ -87,7 +87,7 @@ class NodeManager extends EventEmitter {
   };
 
   // Listen for payments made to the node.
-  // When a payment is setttled, emit the `invoicePaid` event to notify listeners.
+  // When a payment is settled, emit the `invoicePaid` event to notify listeners.
   listenForPayments = (rpc: LnRpc, pubkey: string) => {
     const stream = rpc.subscribeInvoices();
     stream.on("data", (invoice) => {

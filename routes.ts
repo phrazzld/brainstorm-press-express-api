@@ -2,9 +2,8 @@ import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
-import { LndNodeModel, PostModel, UserModel } from "./models";
+import { LndNodeModel, PostModel, PostPaymentModel, UserModel } from "./models";
 import nodeManager from "./node-manager";
-import db from "./posts-db";
 
 const handleError = (err: any) => {
   console.error(err);
@@ -143,41 +142,6 @@ export const deletePost = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/posts/:id/upvote
-// TODO: Rework this into pay-to-read logic
-export const upvotePost = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { hash } = req.body;
-
-  // Validate that an invoice hash was provided
-  if (!hash) {
-    throw new Error("Hash is required.");
-  }
-
-  // Find the post
-  const post = await PostModel.findById(id).exec();
-  if (!post) {
-    throw new Error("Post not found.");
-  }
-
-  // Find the node that made this post
-  // TODO: Go through post.user.node, since posts no longer have pubkeys
-  const node = await LndNodeModel.findOne({}).exec();
-  if (!node) {
-    throw new Error("Node not found for this post.");
-  }
-
-  const rpc = nodeManager.getRpc(node.token);
-  const rHash = Buffer.from(hash, "base64");
-  const { settled } = await rpc.lookupInvoice({ rHash });
-  if (!settled) {
-    throw new Error("The payment has not been paid yet.");
-  }
-
-  db.upvotePost(post.id);
-  return res.send(post);
-};
-
 // POST /api/posts/:id/invoice
 export const postInvoice = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -300,4 +264,70 @@ export const login = async (req: Request, res: Response) => {
   } catch (err) {
     handleError(err);
   }
+};
+
+// GET /api/posts/:id/payments
+export const getPayment = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const payment = await PostPaymentModel.findOne({
+    userId: (<any>req).user.user_id,
+    postId: id,
+  });
+
+  if (!payment) {
+    return res.status(200).send({ paid: false });
+  }
+
+  return res.status(200).send({ paid: true });
+};
+
+// POST /api/posts/:id/payments
+export const logPayment = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // Find the post
+  const post = await PostModel.findById(id).exec();
+  if (!post) {
+    throw new Error("Post not found.");
+  }
+
+  const payingUser = await UserModel.findById((<any>req).user.user_id).exec();
+  if (!payingUser) {
+    throw new Error("Must be logged in to make payments.");
+  }
+
+  const receivingUser = await UserModel.findById(post.userId).exec();
+  if (!receivingUser) {
+    throw new Error("No user found to make payment to.");
+  }
+
+  const { hash } = req.body;
+  if (!hash) {
+    throw new Error("Hash is required.");
+  }
+
+  const node = await LndNodeModel.findById(receivingUser.nodeId).exec();
+  if (!node) {
+    throw new Error("Node not found for receiving user.");
+  }
+
+  const rpc = nodeManager.getRpc(node.token);
+  const rHash = Buffer.from(hash, "base64");
+
+  // See if invoice has been paid
+  // TODO: Check PostPayments collection as well
+  const { settled } = await rpc.lookupInvoice({ rHash });
+  if (!settled) {
+    throw new Error("The payment has not been paid yet.");
+  }
+
+  // Create PostPayments record
+  const postPayment = new PostPaymentModel({
+    userId: payingUser._id,
+    postId: post._id,
+  });
+  await postPayment.save();
+
+  return res.status(200).send(post);
 };

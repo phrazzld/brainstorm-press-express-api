@@ -2,13 +2,18 @@ import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
 import mongoose from "mongoose";
+import { LndNodeModel } from "./models";
 import nodeManager, { NodeEvents } from "./node-manager";
-import { SocketEvents } from "./posts-db";
 import * as routes from "./routes";
 
 require("dotenv").config();
 
 const PORT: number = 4000;
+
+const SocketEvents = {
+  postUpdated: "post-updated",
+  invoicePaid: "invoice-paid",
+};
 
 // Create Express server
 const { app } = expressWs(express());
@@ -34,10 +39,11 @@ app.put("/api/posts/:id", routes.verifyJWT, routes.updatePost);
 app.get("/api/posts", routes.getPosts);
 app.post("/api/posts", routes.verifyJWT, routes.createPost);
 app.delete("/api/posts/:id", routes.verifyJWT, routes.deletePost);
-app.post("/api/posts/:id/invoice", routes.postInvoice);
-app.post("/api/posts/:id/upvote", routes.upvotePost);
+app.post("/api/posts/:id/invoice", routes.verifyJWT, routes.postInvoice);
 app.post("/api/users", routes.createUser);
 app.post("/api/login", routes.login);
+app.get("/api/posts/:id/payments", routes.verifyJWT, routes.getPayment);
+app.post("/api/posts/:id/payments", routes.verifyJWT, routes.logPayment);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
@@ -59,4 +65,7 @@ app.ws("/api/events", (ws) => {
 // Start server
 app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}`);
+
+  const allNodes = await LndNodeModel.find({});
+  await nodeManager.reconnectNodes(allNodes);
 });

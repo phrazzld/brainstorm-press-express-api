@@ -4,7 +4,7 @@ import { model, Schema } from "mongoose";
 // Posts
 //
 
-interface Post {
+export interface Post {
   title: string;
   content: string;
   price: number;
@@ -15,7 +15,7 @@ const PostSchema = new Schema<Post>({
   title: { type: String, required: true },
   content: { type: String, required: true },
   price: { type: Number, required: true },
-  userId: { type: String, required: true }
+  userId: { type: String, required: true },
 });
 
 export const PostModel = model("Post", PostSchema);
@@ -24,7 +24,7 @@ export const PostModel = model("Post", PostSchema);
 // Nodes
 //
 
-interface LndNode {
+export interface LndNode {
   token: string;
   host: string;
   cert: string;
@@ -46,7 +46,7 @@ export const LndNodeModel = model("LndNode", LndNodeSchema);
 // Users
 //
 
-interface User {
+export interface User {
   name: string;
   blog: string;
   password: string;
@@ -59,7 +59,25 @@ const UserSchema = new Schema<User>({
   blog: { type: String, required: true },
   password: { type: String, required: true },
   jwtToken: { type: String },
-  nodeId: { type: String }
+  nodeId: { type: String },
 });
 
 export const UserModel = model("User", UserSchema);
+
+//
+// PostPayments
+//
+
+export interface PostPayment {
+  userId: string;
+  postId: string;
+}
+
+const PostPaymentSchema = new Schema<PostPayment>({
+  userId: { type: String, required: true },
+  postId: { type: String, required: true },
+});
+
+PostPaymentSchema.index({ userId: 1, postId: 1 }, { unique: true })
+
+export const PostPaymentModel = model("PostPayment", PostPaymentSchema);
