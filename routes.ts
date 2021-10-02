@@ -19,20 +19,20 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.get("authorization");
 
   if (!authHeader) {
-    return res.status(403).send("No authorization header sent");
+    return res.status(403).send("No authorization header sent.");
   }
 
   const jwtToken = authHeader.replace("Bearer", "").trim();
 
   if (!jwtToken) {
-    return res.status(403).send("JWT required for authorization");
+    return res.status(403).send("JWT required for authorization.");
   }
 
   try {
     const decoded = jwt.verify(jwtToken, process.env.TOKEN_KEY as string);
     _.assign(req, { user: decoded });
   } catch (err) {
-    return res.status(401).send("Invalid JWT");
+    return res.status(401).send("Invalid JWT.");
   }
 
   return next();
@@ -50,9 +50,12 @@ export const connect = async (req: Request, res: Response) => {
       macaroon,
       token,
       pubkey,
-      userId: (<any>req).user.user_id,
     });
     await node.save();
+    await UserModel.findOneAndUpdate(
+      { _id: (<any>req).user.user_id },
+      { nodeId: node._id }
+    );
     return res.status(201).send(node);
   } catch (err) {
     handleError(err);
@@ -65,13 +68,13 @@ export const connect = async (req: Request, res: Response) => {
 export const getInfo = async (req: Request, res: Response) => {
   const token = req.get("authorization");
   if (!token) {
-    throw new Error("Your node is not connected");
+    throw new Error("Your node is not connected.");
   }
 
   // Find the node making the request
   const node = await LndNodeModel.findOne({ token }).exec();
   if (!node) {
-    throw new Error("Node not found with this token");
+    throw new Error("Node not found with this token.");
   }
 
   // Get node's pubkey and alias
@@ -96,7 +99,7 @@ export const getPost = async (req: Request, res: Response) => {
   try {
     const post = await PostModel.findById(req.params.id).exec();
     if (!post) {
-      throw new Error("No post found");
+      throw new Error("No post found.");
     }
     return res.status(200).send(post);
   } catch (err) {
@@ -134,7 +137,7 @@ export const deletePost = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await PostModel.deleteOne({ _id: id }).exec();
-    return res.status(204).send("Post deleted successfully");
+    return res.status(204).send("Post deleted successfully.");
   } catch (err) {
     handleError(err);
   }
@@ -148,27 +151,27 @@ export const upvotePost = async (req: Request, res: Response) => {
 
   // Validate that an invoice hash was provided
   if (!hash) {
-    throw new Error("Hash is required");
+    throw new Error("Hash is required.");
   }
 
   // Find the post
   const post = await PostModel.findById(id).exec();
   if (!post) {
-    throw new Error("Post not found");
+    throw new Error("Post not found.");
   }
 
   // Find the node that made this post
   // TODO: Go through post.user.node, since posts no longer have pubkeys
   const node = await LndNodeModel.findOne({}).exec();
   if (!node) {
-    throw new Error("Node not found for this post");
+    throw new Error("Node not found for this post.");
   }
 
   const rpc = nodeManager.getRpc(node.token);
   const rHash = Buffer.from(hash, "base64");
   const { settled } = await rpc.lookupInvoice({ rHash });
   if (!settled) {
-    throw new Error("The payment has not been paid yet");
+    throw new Error("The payment has not been paid yet.");
   }
 
   db.upvotePost(post.id);
@@ -185,15 +188,21 @@ export const postInvoice = async (req: Request, res: Response) => {
     throw new Error("Post not found.");
   }
 
-  // TODO: Go through post.user.node, since posts no longer have pubkeys
-  const node = await LndNodeModel.findOne({}).exec();
+  const user = await UserModel.findById(post.userId).exec();
+  if (!user) {
+    throw new Error(
+      "No authoring user found for this post, can't invoice a ghost."
+    );
+  }
+
+  const node = await LndNodeModel.findById(user.nodeId).exec();
   if (!node) {
     throw new Error("Node not found for this post.");
   }
 
   // Create an invoice on the poster's node
   const rpc = nodeManager.getRpc(node.token);
-  const amount = 100;
+  const amount = post.price;
   const inv = await rpc.addInvoice({ value: amount.toString() });
   res.send({
     payreq: inv.paymentRequest,
@@ -275,7 +284,7 @@ export const login = async (req: Request, res: Response) => {
       // Return logged in user
       return res.status(200).send(user);
     }
-    return res.status(400).send("Invalid credentials");
+    return res.status(400).send("Invalid credentials.");
   } catch (err) {
     handleError(err);
   }
