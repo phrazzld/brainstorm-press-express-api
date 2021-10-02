@@ -250,7 +250,13 @@ export const createUser = async (req: Request, res: Response) => {
     newUser.jwtToken = jwtToken;
 
     // Return the new user
-    return res.status(201).send(newUser);
+    return res.status(201).send({
+      _id: newUser._id,
+      name: newUser.name,
+      blog: newUser.blog,
+      jwtToken: newUser.jwtToken,
+      nodeId: newUser.nodeId,
+    });
   } catch (err) {
     handleError(err);
   }
@@ -282,7 +288,13 @@ export const login = async (req: Request, res: Response) => {
       user.jwtToken = jwtToken;
 
       // Return logged in user
-      return res.status(200).send(user);
+      return res.status(200).send({
+        _id: user._id,
+        name: user.name,
+        blog: user.blog,
+        jwtToken: user.jwtToken,
+        nodeId: user.nodeId,
+      });
     }
     return res.status(400).send("Invalid credentials.");
   } catch (err) {
