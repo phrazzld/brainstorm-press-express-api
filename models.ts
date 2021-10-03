@@ -15,7 +15,7 @@ const PostSchema = new Schema<Post>({
   title: { type: String, required: true },
   content: { type: String, required: true },
   price: { type: Number, required: true },
-  user: { type: Schema.Types.ObjectId, ref: 'User' }
+  user: { type: Schema.Types.ObjectId, ref: "User" },
 });
 
 export const PostModel = model("Post", PostSchema);
@@ -51,7 +51,7 @@ export interface User {
   blog: string;
   password: string;
   jwtToken: string;
-  nodeId: string;
+  node: Schema.Types.ObjectId;
 }
 
 const UserSchema = new Schema<User>({
@@ -59,7 +59,7 @@ const UserSchema = new Schema<User>({
   blog: { type: String, required: true },
   password: { type: String, required: true },
   jwtToken: { type: String },
-  nodeId: { type: String },
+  node: { type: Schema.Types.ObjectId, ref: "LndNode" },
 });
 
 export const UserModel = model("User", UserSchema);
@@ -78,6 +78,6 @@ const PostPaymentSchema = new Schema<PostPayment>({
   postId: { type: String, required: true },
 });
 
-PostPaymentSchema.index({ userId: 1, postId: 1 }, { unique: true })
+PostPaymentSchema.index({ userId: 1, postId: 1 }, { unique: true });
 
 export const PostPaymentModel = model("PostPayment", PostPaymentSchema);

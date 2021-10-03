@@ -53,7 +53,7 @@ export const connect = async (req: Request, res: Response) => {
     await node.save();
     await UserModel.findOneAndUpdate(
       { _id: (<any>req).user.user_id },
-      { nodeId: node._id }
+      { node: node._id }
     );
     return res.status(201).send(node);
   } catch (err) {
@@ -154,14 +154,14 @@ export const postInvoice = async (req: Request, res: Response) => {
     throw new Error("Post not found.");
   }
 
-  const user = await UserModel.findById(post.userId).exec();
+  const user = await UserModel.findById(post.userId).populate("node").exec();
   if (!user) {
     throw new Error(
       "No authoring user found for this post, can't invoice a ghost."
     );
   }
 
-  const node = await LndNodeModel.findById(user.nodeId).exec();
+  const node = await LndNodeModel.findById(user.node._id).exec();
   if (!node) {
     throw new Error("Node not found for this post.");
   }
@@ -216,13 +216,7 @@ export const createUser = async (req: Request, res: Response) => {
     newUser.jwtToken = jwtToken;
 
     // Return the new user
-    return res.status(201).send({
-      _id: newUser._id,
-      name: newUser.name,
-      blog: newUser.blog,
-      jwtToken: newUser.jwtToken,
-      nodeId: newUser.nodeId,
-    });
+    return res.status(201).send(newUser);
   } catch (err) {
     handleError(err);
   }
@@ -240,7 +234,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Find user
-    const user = await UserModel.findOne({ name }).exec();
+    const user = await UserModel.findOne({ name }).populate("node").exec();
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // Create JWT
@@ -254,13 +248,7 @@ export const login = async (req: Request, res: Response) => {
       user.jwtToken = jwtToken;
 
       // Return logged in user
-      return res.status(200).send({
-        _id: user._id,
-        name: user.name,
-        blog: user.blog,
-        jwtToken: user.jwtToken,
-        nodeId: user.nodeId,
-      });
+      return res.status(200).send(user);
     }
     return res.status(400).send("Invalid credentials.");
   } catch (err) {
@@ -309,7 +297,7 @@ export const logPayment = async (req: Request, res: Response) => {
     throw new Error("Hash is required.");
   }
 
-  const node = await LndNodeModel.findById(receivingUser.nodeId).exec();
+  const node = await LndNodeModel.findById(receivingUser.node).exec();
   if (!node) {
     throw new Error("Node not found for receiving user.");
   }
