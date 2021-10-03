@@ -86,7 +86,9 @@ export const getInfo = async (req: Request, res: Response) => {
 // GET /api/posts
 export const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await PostModel.find({});
+    const posts = await PostModel.find({})
+      .populate("user", "_id name blog")
+      .exec();
     return res.send(posts);
   } catch (err) {
     handleError(err);
@@ -122,7 +124,7 @@ export const updatePost = async (req: Request, res: Response) => {
 // POST /api/posts
 export const createPost = async (req: Request, res: Response) => {
   try {
-    _.assign(req.body, { userId: (<any>req).user.user_id });
+    _.assign(req.body, { user: (<any>req).user.user_id });
     const post = new PostModel(req.body);
     await post.save();
     return res.status(201).send(post);

@@ -8,14 +8,14 @@ export interface Post {
   title: string;
   content: string;
   price: number;
-  userId: string;
+  user: Schema.Types.ObjectId;
 }
 
 const PostSchema = new Schema<Post>({
   title: { type: String, required: true },
   content: { type: String, required: true },
   price: { type: Number, required: true },
-  userId: { type: String, required: true },
+  user: { type: Schema.Types.ObjectId, ref: 'User' }
 });
 
 export const PostModel = model("Post", PostSchema);
