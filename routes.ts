@@ -110,6 +110,20 @@ export const getPosts = async (req: Request, res: Response) => {
   }
 };
 
+// GET /api/users/:id/posts
+// Get all posts written by a user
+export const getUserPosts = async (req: Request, res: Response) => {
+  try {
+    const user = await UserModel.findById(req.params.id).exec();
+    const posts = await PostModel.find({ user: user._id })
+      .populate("user", "_id name blog")
+      .exec();
+    return res.status(200).send(posts);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
 // GET /api/posts/:id
 export const getPost = async (req: Request, res: Response) => {
   try {

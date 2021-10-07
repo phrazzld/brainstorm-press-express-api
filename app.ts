@@ -42,6 +42,7 @@ app.post("/api/posts", routes.verifyJWT, routes.createPost);
 app.delete("/api/posts/:id", routes.verifyJWT, routes.deletePost);
 app.post("/api/posts/:id/invoice", routes.verifyJWT, routes.postInvoice);
 app.post("/api/users", routes.createUser);
+app.get("/api/users/:id/posts", routes.getUserPosts);
 app.post("/api/login", routes.login);
 app.get("/api/posts/:id/payments", routes.verifyJWT, routes.getPayment);
 app.post("/api/posts/:id/payments", routes.verifyJWT, routes.logPayment);
