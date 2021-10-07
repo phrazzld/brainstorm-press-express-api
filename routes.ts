@@ -61,6 +61,21 @@ export const connect = async (req: Request, res: Response) => {
   }
 };
 
+// DELETE /api/node
+export const deleteNode = async (req: Request, res: Response) => {
+  const token = req.get("authorization");
+  if (!token) {
+    throw new Error("You must authorize this request with your node's token.");
+  }
+
+  try {
+    await LndNodeModel.deleteOne({ token }).exec();
+    return res.status(204).send("Node deleted successfully.");
+  } catch (err) {
+    handleError(err);
+  }
+};
+
 // GET /api/node/info
 // Get info from an LndNode
 // TODO: Rethink auth strat w/JWT vs LND

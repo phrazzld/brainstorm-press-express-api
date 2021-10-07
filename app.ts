@@ -33,6 +33,7 @@ db.once("open", () => {
 });
 
 app.post("/api/connect", routes.verifyJWT, routes.connect);
+app.delete("/api/node", routes.deleteNode);
 app.get("/api/node/info", routes.getInfo);
 app.get("/api/posts/:id", routes.getPost);
 app.put("/api/posts/:id", routes.verifyJWT, routes.updatePost);
