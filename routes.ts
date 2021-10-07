@@ -51,6 +51,7 @@ export const connect = async (req: Request, res: Response) => {
       pubkey,
     });
     await node.save();
+    // TODO: Learn why this is user.user_id and not user._id
     await UserModel.findOneAndUpdate(
       { _id: (<any>req).user.user_id },
       { node: node._id }
@@ -246,6 +247,23 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Return the new user
     return res.status(201).send(newUser);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// PUT /api/users/:id
+// Update a user
+export const updateUser = async (req: Request, res: Response) => {
+  const { blog } = req.body;
+
+  try {
+    const user = await UserModel.findOneAndUpdate(
+      { _id: (<any>req).user.user_id },
+      { blog: blog },
+      { new: true }
+    );
+    res.status(204).send(user);
   } catch (err) {
     handleError(err);
   }
