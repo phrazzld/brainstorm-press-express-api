@@ -128,7 +128,9 @@ export const getUserPosts = async (req: Request, res: Response) => {
 // GET /api/posts/:id
 export const getPost = async (req: Request, res: Response) => {
   try {
-    const post = await PostModel.findById(req.params.id).exec();
+    const post = await PostModel.findById(req.params.id)
+      .populate("user", "_id name blog")
+      .exec();
     if (!post) {
       throw new Error("No post found.");
     }
@@ -179,16 +181,21 @@ export const postInvoice = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // Find the post
-  const post = await PostModel.findById(id).exec();
+  const post = await PostModel.findById(id).populate("user").exec();
   if (!post) {
     throw new Error("Post not found.");
   }
 
-  const user = await UserModel.findById(post.userId).populate("node").exec();
+  const user = await UserModel.findById(post.user._id).populate("node").exec();
   if (!user) {
     throw new Error(
       "No authoring user found for this post, can't invoice a ghost."
     );
+  }
+
+  // Throw an error if the requesting user is the author
+  if ((<any>req).user.user_id.toString() === user._id.toString()) {
+    throw new Error("Cannot invoice the author.");
   }
 
   const node = await LndNodeModel.findById(user.node._id).exec();
@@ -324,7 +331,7 @@ export const logPayment = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // Find the post
-  const post = await PostModel.findById(id).exec();
+  const post = await PostModel.findById(id).populate("user", "_id").exec();
   if (!post) {
     throw new Error("Post not found.");
   }
@@ -334,7 +341,7 @@ export const logPayment = async (req: Request, res: Response) => {
     throw new Error("Must be logged in to make payments.");
   }
 
-  const receivingUser = await UserModel.findById(post.userId).exec();
+  const receivingUser = await UserModel.findById(post.user._id).exec();
   if (!receivingUser) {
     throw new Error("No user found to make payment to.");
   }
