@@ -50,7 +50,6 @@ export interface User {
   name: string;
   blog: string;
   password: string;
-  jwtToken: string;
   node: Schema.Types.ObjectId;
 }
 
@@ -58,7 +57,6 @@ const UserSchema = new Schema<User>({
   name: { type: String, required: true },
   blog: { type: String, required: true },
   password: { type: String, required: true },
-  jwtToken: { type: String },
   node: { type: Schema.Types.ObjectId, ref: "LndNode" },
 });
 
@@ -81,3 +79,17 @@ const PostPaymentSchema = new Schema<PostPayment>({
 PostPaymentSchema.index({ userId: 1, postId: 1 }, { unique: true });
 
 export const PostPaymentModel = model("PostPayment", PostPaymentSchema);
+
+//
+// RefreshTokens
+//
+
+export interface RefreshToken {
+  token: string;
+}
+
+const RefreshTokenSchema = new Schema<RefreshToken>({
+  token: { type: String, required: true }
+})
+
+export const RefreshTokenModel = model("RefreshToken", RefreshTokenSchema)

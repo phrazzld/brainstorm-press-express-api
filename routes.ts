@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
-import { LndNodeModel, PostModel, PostPaymentModel, UserModel } from "./models";
+import { RefreshTokenModel, LndNodeModel, PostModel, PostPaymentModel, UserModel } from "./models";
 import nodeManager from "./node-manager";
 
 const handleError = (err: any) => {
@@ -15,23 +15,27 @@ const handleError = (err: any) => {
 };
 
 export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
+  console.debug("--- verifyJWT ---")
   const authHeader = req.get("authorization");
 
   if (!authHeader) {
     return res.status(403).send("No authorization header sent.");
   }
 
-  const jwtToken = authHeader.replace("Bearer", "").trim();
+  const accessToken = authHeader.replace("Bearer", "").trim();
 
-  if (!jwtToken) {
+  if (!accessToken) {
     return res.status(403).send("JWT required for authorization.");
   }
 
   try {
-    const decoded = jwt.verify(jwtToken, process.env.TOKEN_KEY as string);
+    const decoded = jwt.verify(
+      accessToken,
+      process.env.ACCESS_TOKEN_SECRET as string
+    );
     _.assign(req, { user: decoded });
   } catch (err) {
-    return res.status(401).send("Invalid JWT.");
+    return res.status(401).send("Invalid access token.");
   }
 
   return next();
@@ -40,6 +44,7 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
 // POST /api/connect
 // Connect to an LndNode
 export const connect = async (req: Request, res: Response) => {
+  console.debug("--- connect ---")
   try {
     const { host, cert, macaroon } = req.body;
     const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
@@ -51,9 +56,9 @@ export const connect = async (req: Request, res: Response) => {
       pubkey,
     });
     await node.save();
-    // TODO: Learn why this is user.user_id and not user._id
+    console.log("req.user:", (<any>req).user);
     await UserModel.findOneAndUpdate(
-      { _id: (<any>req).user.user_id },
+      { _id: (<any>req).user._id },
       { node: node._id }
     );
     return res.status(201).send(node);
@@ -64,6 +69,7 @@ export const connect = async (req: Request, res: Response) => {
 
 // DELETE /api/node
 export const deleteNode = async (req: Request, res: Response) => {
+  console.debug("--- deleteNode ---")
   const token = req.get("authorization");
   if (!token) {
     throw new Error("You must authorize this request with your node's token.");
@@ -81,6 +87,7 @@ export const deleteNode = async (req: Request, res: Response) => {
 // Get info from an LndNode
 // TODO: Rethink auth strat w/JWT vs LND
 export const getInfo = async (req: Request, res: Response) => {
+  console.debug("--- getInfo ---")
   const token = req.get("authorization");
   if (!token) {
     throw new Error("Your node is not connected.");
@@ -101,6 +108,7 @@ export const getInfo = async (req: Request, res: Response) => {
 
 // GET /api/posts
 export const getPosts = async (req: Request, res: Response) => {
+  console.debug("--- getPosts ---")
   try {
     const posts = await PostModel.find({})
       .populate("user", "_id name blog")
@@ -114,6 +122,7 @@ export const getPosts = async (req: Request, res: Response) => {
 // GET /api/users/:id/posts
 // Get all posts written by a user
 export const getUserPosts = async (req: Request, res: Response) => {
+  console.debug("--- getUserPosts ---")
   try {
     const user = await UserModel.findById(req.params.id).exec();
     const posts = await PostModel.find({ user: user._id })
@@ -127,6 +136,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
 
 // GET /api/posts/:id
 export const getPost = async (req: Request, res: Response) => {
+  console.debug("--- getPost ---")
   try {
     const post = await PostModel.findById(req.params.id)
       .populate("user", "_id name blog")
@@ -142,6 +152,7 @@ export const getPost = async (req: Request, res: Response) => {
 
 // PUT /api/posts/:id
 export const updatePost = async (req: Request, res: Response) => {
+  console.debug("--- updatePost ---")
   try {
     const post = await PostModel.findOneAndUpdate(
       { _id: req.params.id },
@@ -155,8 +166,10 @@ export const updatePost = async (req: Request, res: Response) => {
 
 // POST /api/posts
 export const createPost = async (req: Request, res: Response) => {
+  console.debug("--- createPost ---")
   try {
-    _.assign(req.body, { user: (<any>req).user.user_id });
+    // TODO: verify we can remove _.assign call
+    _.assign(req.body, { user: (<any>req).user._id });
     const post = new PostModel(req.body);
     await post.save();
     return res.status(201).send(post);
@@ -167,6 +180,7 @@ export const createPost = async (req: Request, res: Response) => {
 
 // DELETE /api/posts/:id
 export const deletePost = async (req: Request, res: Response) => {
+  console.debug("--- deletePost ---")
   const { id } = req.params;
   try {
     await PostModel.deleteOne({ _id: id }).exec();
@@ -178,6 +192,7 @@ export const deletePost = async (req: Request, res: Response) => {
 
 // POST /api/posts/:id/invoice
 export const postInvoice = async (req: Request, res: Response) => {
+  console.debug("--- postInvoice ---")
   const { id } = req.params;
 
   // Find the post
@@ -194,7 +209,7 @@ export const postInvoice = async (req: Request, res: Response) => {
   }
 
   // Throw an error if the requesting user is the author
-  if ((<any>req).user.user_id.toString() === user._id.toString()) {
+  if ((<any>req).user._id.toString() === user._id.toString()) {
     throw new Error("Cannot invoice the author.");
   }
 
@@ -217,6 +232,7 @@ export const postInvoice = async (req: Request, res: Response) => {
 // POST /api/users
 // Register a new user
 export const createUser = async (req: Request, res: Response) => {
+  console.debug("--- createUser ---")
   try {
     // Get user input
     const { name, blog, password } = req.body;
@@ -241,19 +257,40 @@ export const createUser = async (req: Request, res: Response) => {
       blog,
       password: encryptedPassword,
     });
+    console.debug("newUser:", newUser)
 
-    // Create JWT token
-    const jwtToken = jwt.sign(
-      { user_id: newUser._id, name },
-      process.env.TOKEN_KEY as string,
-      { expiresIn: "2h" }
+    // Create access token
+    const accessToken = jwt.sign(
+      newUser.toJSON(),
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: "15m" }
     );
+    console.debug("accessToken:", accessToken)
 
-    // Save JWT token to the new user
-    newUser.jwtToken = jwtToken;
+    // Create refresh token
+    const refreshToken = jwt.sign(
+      newUser.toJSON(),
+      process.env.REFRESH_TOKEN_SECRET as string
+    );
+    console.debug("refreshToken:", refreshToken);
+
+    // Save refresh token to the DB
+    await RefreshTokenModel.create({ token: refreshToken })
+
+    // Add the refresh token to the response cookie
+    res.cookie("refreshToken", refreshToken, {
+      maxAge: 3.154e10, // 1 year
+      httpOnly: true,
+    });
 
     // Return the new user
-    return res.status(201).send(newUser);
+    return res
+      .status(201)
+      .send({
+        user: newUser,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      });
   } catch (err) {
     handleError(err);
   }
@@ -262,11 +299,12 @@ export const createUser = async (req: Request, res: Response) => {
 // PUT /api/users/:id
 // Update a user
 export const updateUser = async (req: Request, res: Response) => {
+  console.debug("--- updateUser ---")
   const { blog } = req.body;
 
   try {
     const user = await UserModel.findOneAndUpdate(
-      { _id: (<any>req).user.user_id },
+      { _id: (<any>req).user._id },
       { blog: blog },
       { new: true }
     );
@@ -278,6 +316,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
 // POST /api/login
 export const login = async (req: Request, res: Response) => {
+  console.debug("--- login ---")
   try {
     // Get user input
     const { name, password } = req.body;
@@ -289,20 +328,41 @@ export const login = async (req: Request, res: Response) => {
 
     // Find user
     const user = await UserModel.findOne({ name }).populate("node").exec();
+    console.debug("user:", user)
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      // Create JWT
-      const jwtToken = jwt.sign(
-        { user_id: user._id, name },
-        process.env.TOKEN_KEY as string,
-        { expiresIn: "2h" }
+      // Create access token
+      const accessToken = jwt.sign(
+        user.toJSON(),
+        process.env.ACCESS_TOKEN_SECRET as string,
+        { expiresIn: "15m" }
       );
+      console.debug("accessToken:", accessToken)
 
-      // Save JWT to user
-      user.jwtToken = jwtToken;
+      // Create refresh token
+      const refreshToken = jwt.sign(
+        user.toJSON(),
+        process.env.REFRESH_TOKEN_SECRET as string
+      );
+      console.log("refreshToken:", refreshToken);
+
+      // Save refresh token to the DB
+      await RefreshTokenModel.create({ token: refreshToken })
+
+      // Add the refresh token to the response cookie
+      res.cookie("refreshToken", refreshToken, {
+        maxAge: 3.154e10, // 1 year
+        httpOnly: true,
+      });
 
       // Return logged in user
-      return res.status(200).send(user);
+      return res
+        .status(200)
+        .send({
+          user: user,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        });
     }
     return res.status(400).send("Invalid credentials.");
   } catch (err) {
@@ -312,10 +372,11 @@ export const login = async (req: Request, res: Response) => {
 
 // GET /api/posts/:id/payments
 export const getPayment = async (req: Request, res: Response) => {
+  console.debug("--- getPayment ---")
   const { id } = req.params;
 
   const payment = await PostPaymentModel.findOne({
-    userId: (<any>req).user.user_id,
+    userId: (<any>req).user._id,
     postId: id,
   });
 
@@ -328,6 +389,7 @@ export const getPayment = async (req: Request, res: Response) => {
 
 // POST /api/posts/:id/payments
 export const logPayment = async (req: Request, res: Response) => {
+  console.debug("--- logPayment ---")
   const { id } = req.params;
 
   // Find the post
@@ -336,7 +398,7 @@ export const logPayment = async (req: Request, res: Response) => {
     throw new Error("Post not found.");
   }
 
-  const payingUser = await UserModel.findById((<any>req).user.user_id).exec();
+  const payingUser = await UserModel.findById((<any>req).user._id).exec();
   if (!payingUser) {
     throw new Error("Must be logged in to make payments.");
   }
