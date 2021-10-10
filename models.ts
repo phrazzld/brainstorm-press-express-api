@@ -51,6 +51,7 @@ export interface User {
   blog: string;
   password: string;
   node: Schema.Types.ObjectId;
+  refreshToken?: string;
 }
 
 const UserSchema = new Schema<User>({
@@ -58,6 +59,7 @@ const UserSchema = new Schema<User>({
   blog: { type: String, required: true },
   password: { type: String, required: true },
   node: { type: Schema.Types.ObjectId, ref: "LndNode" },
+  refreshToken: { type: String }
 });
 
 export const UserModel = model("User", UserSchema);

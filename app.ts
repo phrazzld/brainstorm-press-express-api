@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
@@ -19,6 +20,17 @@ const SocketEvents = {
 const { app } = expressWs(express());
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
+app.use(cookieParser());
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization"
+  );
+  next();
+});
 
 // Database setup
 const mongoUri: string = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -32,21 +44,31 @@ db.once("open", () => {
   console.log("Successfully connected to database.");
 });
 
-app.post("/api/connect", routes.verifyJWT, routes.connect);
+// TODO: Refactor LND routes to verify both LND token and access token
+app.post("/api/connect", routes.verifyAccessToken, routes.connect);
 app.delete("/api/node", routes.deleteNode);
 app.get("/api/node/info", routes.getInfo);
 app.get("/api/posts/:id", routes.getPost);
-app.put("/api/posts/:id", routes.verifyJWT, routes.updatePost);
+app.put("/api/posts/:id", routes.verifyAccessToken, routes.updatePost);
 app.get("/api/posts", routes.getPosts);
-app.post("/api/posts", routes.verifyJWT, routes.createPost);
-app.delete("/api/posts/:id", routes.verifyJWT, routes.deletePost);
-app.post("/api/posts/:id/invoice", routes.verifyJWT, routes.postInvoice);
+app.post("/api/posts", routes.verifyAccessToken, routes.createPost);
+app.delete("/api/posts/:id", routes.verifyAccessToken, routes.deletePost);
+app.post(
+  "/api/posts/:id/invoice",
+  routes.verifyAccessToken,
+  routes.postInvoice
+);
 app.post("/api/users", routes.createUser);
 app.get("/api/users/:id/posts", routes.getUserPosts);
-app.put("/api/users/:id", routes.verifyJWT, routes.updateUser)
+app.put("/api/users/:id", routes.verifyAccessToken, routes.updateUser);
 app.post("/api/login", routes.login);
-app.get("/api/posts/:id/payments", routes.verifyJWT, routes.getPayment);
-app.post("/api/posts/:id/payments", routes.verifyJWT, routes.logPayment);
+app.get("/api/posts/:id/payments", routes.verifyAccessToken, routes.getPayment);
+app.post(
+  "/api/posts/:id/payments",
+  routes.verifyAccessToken,
+  routes.logPayment
+);
+app.post("/api/accessToken", routes.createAccessToken);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
