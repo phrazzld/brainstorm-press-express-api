@@ -466,6 +466,18 @@ export const logPayment = async (req: Request, res: Response) => {
   return res.status(200).send(post);
 };
 
+// DELETE /api/refreshToken
+export const deleteRefreshToken = async (req: Request, res: Response) => {
+  console.debug("--- deleteRefreshToken ---")
+  try {
+    await RefreshTokenModel.deleteOne({ token: req.cookies.refreshToken })
+    res.clearCookie("refreshToken")
+    res.status(204).send("Refresh token deleted successfully.")
+  } catch (err) {
+    handleError(err)
+  }
+}
+
 export const createAccessToken = async (req: Request, res: Response) => {
   console.debug("--- createAccessToken ---");
   const refreshToken = req.cookies.refreshToken;

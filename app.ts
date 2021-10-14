@@ -70,6 +70,7 @@ app.post(
   routes.logPayment
 );
 app.post("/api/accessToken", routes.createAccessToken);
+app.delete("/api/refreshToken", routes.deleteRefreshToken);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
