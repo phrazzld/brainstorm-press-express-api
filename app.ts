@@ -61,6 +61,7 @@ app.post(
 app.post("/api/users", routes.createUser);
 app.get("/api/users/:id/posts", routes.getUserPosts);
 app.put("/api/users/:id", routes.verifyAccessToken, routes.updateUser);
+app.get("/api/users/current", routes.verifyAccessToken, routes.getCurrentUser);
 app.post("/api/login", routes.login);
 app.get("/api/posts/:id/payments", routes.verifyAccessToken, routes.getPayment);
 app.post(

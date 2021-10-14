@@ -2,7 +2,13 @@ import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
-import { LndNodeModel, PostModel, PostPaymentModel, RefreshTokenModel, UserModel } from "./models";
+import {
+  LndNodeModel,
+  PostModel,
+  PostPaymentModel,
+  RefreshTokenModel,
+  UserModel,
+} from "./models";
 import nodeManager from "./node-manager";
 
 const handleError = (err: any) => {
@@ -15,30 +21,33 @@ const handleError = (err: any) => {
 };
 
 const generateAccessToken = (user: any): string => {
-  console.debug("--- generateAccessToken ---")
-  return jwt.sign({ _id: user._id, name: user.name }, process.env.ACCESS_TOKEN_SECRET as string, {
-    expiresIn: "5s",
-  });
+  console.debug("--- generateAccessToken ---");
+  return jwt.sign(
+    { _id: user._id, name: user.name },
+    process.env.ACCESS_TOKEN_SECRET as string,
+    {
+      expiresIn: "5s",
+    }
+  );
 };
 
 const generateRefreshToken = async (user: any): Promise<string> => {
-  console.debug("--- generateRefreshToken ---")
+  console.debug("--- generateRefreshToken ---");
   const refreshToken = jwt.sign(
     { _id: user._id, name: user.name },
     process.env.REFRESH_TOKEN_SECRET as string
   );
 
-  // Save refresh token to the DB
-  await RefreshTokenModel.create({ token: refreshToken })
-  //await UserModel.findOneAndUpdate(
-  //  { _id: user._id },
-  //  { refreshToken: refreshToken }
-  //).exec();
+  await RefreshTokenModel.create({ token: refreshToken });
 
   return refreshToken;
 };
 
-export const verifyAccessToken = (req: Request, res: Response, next: NextFunction) => {
+export const verifyAccessToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   console.debug("--- verifyAccessToken ---");
   const authHeader = req.get("authorization");
 
@@ -306,7 +315,7 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(201).send({
       user: newUser,
       accessToken: accessToken,
-      refreshToken: refreshToken
+      refreshToken: refreshToken,
     });
   } catch (err) {
     handleError(err);
@@ -326,6 +335,20 @@ export const updateUser = async (req: Request, res: Response) => {
       { new: true }
     );
     res.status(204).send(user);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// GET /api/users/current
+// Get logged in user
+export const getCurrentUser = async (req: Request, res: Response) => {
+  console.debug("--- getCurrentUser ---");
+  try {
+    const user = await UserModel.findOne({ _id: (<any>req).user._id })
+      .populate("node")
+      .exec();
+    res.status(200).send(user);
   } catch (err) {
     handleError(err);
   }
@@ -366,7 +389,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(200).send({
         user: user,
         accessToken: accessToken,
-        refreshToken: refreshToken
+        refreshToken: refreshToken,
       });
     }
     return res.status(400).send("Invalid credentials.");
@@ -444,8 +467,8 @@ export const logPayment = async (req: Request, res: Response) => {
 };
 
 export const createAccessToken = async (req: Request, res: Response) => {
-  console.debug("--- createAccessToken ---")
-  const refreshToken = req.cookies.refreshToken
+  console.debug("--- createAccessToken ---");
+  const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     return res
       .status(401)
@@ -469,7 +492,7 @@ export const createAccessToken = async (req: Request, res: Response) => {
       }
       console.log("jwt.verify callback, user:", user);
       const accessToken = generateAccessToken(user);
-      console.log("new access token:", accessToken)
+      console.log("new access token:", accessToken);
       return res.status(200).json(accessToken);
     }
   );
