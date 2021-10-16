@@ -26,7 +26,7 @@ const generateAccessToken = (user: any): string => {
     { _id: user._id, name: user.name },
     process.env.ACCESS_TOKEN_SECRET as string,
     {
-      expiresIn: "5s",
+      expiresIn: "15s",
     }
   );
 };
@@ -116,6 +116,25 @@ export const deleteNode = async (req: Request, res: Response) => {
   }
 };
 
+// GET /api/node/status
+export const getNodeStatus = async (req: Request, res: Response) => {
+  console.debug("--- getNodeStatus ---")
+  const id = req.params.id
+  if (!id) {
+    throw new Error("Cannot get status of node without id.")
+  }
+
+  try {
+    const node = await LndNodeModel.findOne({ _id: id }).exec()
+    if (!node) {
+      return res.status(200).send({ status: "Not found." })
+    }
+    return res.status(200).send({ status: "Connected." })
+  } catch (err) {
+    handleError(err)
+  }
+}
+
 // GET /api/node/info
 // Get info from an LndNode
 // TODO: Rethink auth strat w/JWT vs LND
@@ -172,7 +191,7 @@ export const getPost = async (req: Request, res: Response) => {
   console.debug("--- getPost ---");
   try {
     const post = await PostModel.findById(req.params.id)
-      .populate("user", "_id name blog")
+      .populate("user", "_id name blog node")
       .exec();
     if (!post) {
       throw new Error("No post found.");
@@ -244,6 +263,11 @@ export const postInvoice = async (req: Request, res: Response) => {
   // Throw an error if the requesting user is the author
   if ((<any>req).user._id.toString() === user._id.toString()) {
     throw new Error("Cannot invoice the author.");
+  }
+
+  // TODO: Handle the case where the authoring user's node is not connected
+  if (!user.node) {
+    throw new Error("Author has no node connected.")
   }
 
   const node = await LndNodeModel.findById(user.node._id).exec();
