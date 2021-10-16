@@ -26,7 +26,7 @@ const generateAccessToken = (user: any): string => {
     { _id: user._id, name: user.name },
     process.env.ACCESS_TOKEN_SECRET as string,
     {
-      expiresIn: "15s",
+      expiresIn: "15m",
     }
   );
 };
@@ -118,22 +118,22 @@ export const deleteNode = async (req: Request, res: Response) => {
 
 // GET /api/node/status
 export const getNodeStatus = async (req: Request, res: Response) => {
-  console.debug("--- getNodeStatus ---")
-  const id = req.params.id
+  console.debug("--- getNodeStatus ---");
+  const id = req.params.id;
   if (!id) {
-    throw new Error("Cannot get status of node without id.")
+    throw new Error("Cannot get status of node without id.");
   }
 
   try {
-    const node = await LndNodeModel.findOne({ _id: id }).exec()
+    const node = await LndNodeModel.findOne({ _id: id }).exec();
     if (!node) {
-      return res.status(200).send({ status: "Not found." })
+      return res.status(200).send({ status: "Not found." });
     }
-    return res.status(200).send({ status: "Connected." })
+    return res.status(200).send({ status: "Connected." });
   } catch (err) {
-    handleError(err)
+    handleError(err);
   }
-}
+};
 
 // GET /api/node/info
 // Get info from an LndNode
@@ -162,7 +162,7 @@ export const getInfo = async (req: Request, res: Response) => {
 export const getPosts = async (req: Request, res: Response) => {
   console.debug("--- getPosts ---");
   try {
-    const posts = await PostModel.find({})
+    const posts = await PostModel.find({ published: true })
       .populate("user", "_id name blog")
       .exec();
     return res.send(posts);
@@ -177,10 +177,26 @@ export const getUserPosts = async (req: Request, res: Response) => {
   console.debug("--- getUserPosts ---");
   try {
     const user = await UserModel.findById(req.params.id).exec();
-    const posts = await PostModel.find({ user: user._id })
+    const posts = await PostModel.find({ user: user._id, published: true })
       .populate("user", "_id name blog")
       .exec();
     return res.status(200).send(posts);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// GET /api/drafts
+// Get all of your unpublished posts
+export const getDraftPosts = async (req: Request, res: Response) => {
+  console.debug("--- getDraftPosts ---");
+  try {
+    const user = await UserModel.findById((<any>req).user._id).exec();
+    const drafts = await PostModel.find({
+      user: user._id,
+      published: false,
+    }).exec();
+    return res.status(200).send(drafts);
   } catch (err) {
     handleError(err);
   }
@@ -267,7 +283,7 @@ export const postInvoice = async (req: Request, res: Response) => {
 
   // TODO: Handle the case where the authoring user's node is not connected
   if (!user.node) {
-    throw new Error("Author has no node connected.")
+    throw new Error("Author has no node connected.");
   }
 
   const node = await LndNodeModel.findById(user.node._id).exec();
@@ -492,15 +508,15 @@ export const logPayment = async (req: Request, res: Response) => {
 
 // DELETE /api/refreshToken
 export const deleteRefreshToken = async (req: Request, res: Response) => {
-  console.debug("--- deleteRefreshToken ---")
+  console.debug("--- deleteRefreshToken ---");
   try {
-    await RefreshTokenModel.deleteOne({ token: req.cookies.refreshToken })
-    res.clearCookie("refreshToken")
-    res.status(204).send("Refresh token deleted successfully.")
+    await RefreshTokenModel.deleteOne({ token: req.cookies.refreshToken });
+    res.clearCookie("refreshToken");
+    res.status(204).send("Refresh token deleted successfully.");
   } catch (err) {
-    handleError(err)
+    handleError(err);
   }
-}
+};
 
 export const createAccessToken = async (req: Request, res: Response) => {
   console.debug("--- createAccessToken ---");

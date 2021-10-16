@@ -8,6 +8,7 @@ export interface Post {
   title: string;
   content: string;
   price: number;
+  published: boolean;
   user: Schema.Types.ObjectId;
 }
 
@@ -15,6 +16,7 @@ const PostSchema = new Schema<Post>({
   title: { type: String, required: true },
   content: { type: String, required: true },
   price: { type: Number, required: true },
+  published: { type: Boolean, required: true, default: false },
   user: { type: Schema.Types.ObjectId, ref: "User" },
 });
 
@@ -59,7 +61,7 @@ const UserSchema = new Schema<User>({
   blog: { type: String, required: true },
   password: { type: String, required: true },
   node: { type: Schema.Types.ObjectId, ref: "LndNode" },
-  refreshToken: { type: String }
+  refreshToken: { type: String },
 });
 
 export const UserModel = model("User", UserSchema);
@@ -91,7 +93,7 @@ export interface RefreshToken {
 }
 
 const RefreshTokenSchema = new Schema<RefreshToken>({
-  token: { type: String, required: true }
-})
+  token: { type: String, required: true },
+});
 
-export const RefreshTokenModel = model("RefreshToken", RefreshTokenSchema)
+export const RefreshTokenModel = model("RefreshToken", RefreshTokenSchema);
