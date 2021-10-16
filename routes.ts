@@ -26,7 +26,7 @@ const generateAccessToken = (user: any): string => {
     { _id: user._id, name: user.name },
     process.env.ACCESS_TOKEN_SECRET as string,
     {
-      expiresIn: "15m",
+      expiresIn: "15s",
     }
   );
 };
