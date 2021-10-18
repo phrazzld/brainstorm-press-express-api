@@ -195,7 +195,9 @@ export const getDraftPosts = async (req: Request, res: Response) => {
     const drafts = await PostModel.find({
       user: user._id,
       published: false,
-    }).exec();
+    })
+      .populate("user", "_id name blog")
+      .exec();
     return res.status(200).send(drafts);
   } catch (err) {
     handleError(err);
@@ -465,26 +467,31 @@ export const logPayment = async (req: Request, res: Response) => {
   if (!post) {
     throw new Error("Post not found.");
   }
+  console.log("post:", post);
 
   const payingUser = await UserModel.findById((<any>req).user._id).exec();
   if (!payingUser) {
     throw new Error("Must be logged in to make payments.");
   }
+  console.log("payingUser:", payingUser);
 
   const receivingUser = await UserModel.findById(post.user._id).exec();
   if (!receivingUser) {
     throw new Error("No user found to make payment to.");
   }
+  console.log("receivingUser:", receivingUser);
 
   const { hash } = req.body;
   if (!hash) {
     throw new Error("Hash is required.");
   }
+  console.log("hash:", hash);
 
   const node = await LndNodeModel.findById(receivingUser.node).exec();
   if (!node) {
     throw new Error("Node not found for receiving user.");
   }
+  console.log("node:", node);
 
   const rpc = nodeManager.getRpc(node.token);
   const rHash = Buffer.from(hash, "base64");
