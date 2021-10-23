@@ -164,16 +164,16 @@ export const getInfo = async (req: Request, res: Response) => {
 export const getPosts = async (req: Request, res: Response) => {
   console.debug("--- getPosts ---");
   const page: number = Number(req.query.page);
+  const free = req.query.free;
+
+  const filter = free ? { published: true, price: 0 } : { published: true };
 
   try {
-    const posts = await PostModel.paginate(
-      { published: true },
-      {
-        page: page,
-        limit: POSTS_LIMIT,
-        populate: { path: "user", select: PUBLIC_USER_INFO },
-      }
-    );
+    const posts = await PostModel.paginate(filter, {
+      page: page,
+      limit: POSTS_LIMIT,
+      populate: { path: "user", select: PUBLIC_USER_INFO },
+    });
     return res.send(posts);
   } catch (err) {
     handleError(err);
@@ -185,6 +185,7 @@ export const getPosts = async (req: Request, res: Response) => {
 export const getUserPosts = async (req: Request, res: Response) => {
   console.debug("--- getUserPosts ---");
   const page: number = Number(req.query.page);
+  const free = req.query.free;
 
   try {
     const user = await UserModel.findById(req.params.id).exec();
@@ -192,14 +193,15 @@ export const getUserPosts = async (req: Request, res: Response) => {
       throw new Error("Cannot find user to get posts for.");
     }
 
-    const posts = await PostModel.paginate(
-      { user: user._id, published: true },
-      {
-        page: page,
-        limit: POSTS_LIMIT,
-        populate: { path: "user", select: PUBLIC_USER_INFO },
-      }
-    );
+    const filter = free
+      ? { user: user._id, published: true, price: 0 }
+      : { user: user._id, published: true };
+
+    const posts = await PostModel.paginate(filter, {
+      page: page,
+      limit: POSTS_LIMIT,
+      populate: { path: "user", select: PUBLIC_USER_INFO },
+    });
     return res.status(200).send(posts);
   } catch (err) {
     handleError(err);
