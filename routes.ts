@@ -11,8 +11,8 @@ import {
 } from "./models";
 import nodeManager from "./node-manager";
 
-const POSTS_LIMIT = 5
-const PUBLIC_USER_INFO = "_id name blog"
+const POSTS_LIMIT = 5;
+const PUBLIC_USER_INFO = "_id name blog";
 
 const handleError = (err: any) => {
   console.error(err);
@@ -163,7 +163,7 @@ export const getInfo = async (req: Request, res: Response) => {
 // GET /api/posts
 export const getPosts = async (req: Request, res: Response) => {
   console.debug("--- getPosts ---");
-  const page: number = Number(req.query.page)
+  const page: number = Number(req.query.page);
 
   try {
     const posts = await PostModel.paginate(
@@ -184,7 +184,7 @@ export const getPosts = async (req: Request, res: Response) => {
 // Get all posts written by a user
 export const getUserPosts = async (req: Request, res: Response) => {
   console.debug("--- getUserPosts ---");
-  const page: number = Number(req.query.page)
+  const page: number = Number(req.query.page);
 
   try {
     const user = await UserModel.findById(req.params.id).exec();
@@ -194,7 +194,11 @@ export const getUserPosts = async (req: Request, res: Response) => {
 
     const posts = await PostModel.paginate(
       { user: user._id, published: true },
-      { page: page, limit: POSTS_LIMIT, populate: { path: "user", select: PUBLIC_USER_INFO } }
+      {
+        page: page,
+        limit: POSTS_LIMIT,
+        populate: { path: "user", select: PUBLIC_USER_INFO },
+      }
     );
     return res.status(200).send(posts);
   } catch (err) {
@@ -206,7 +210,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
 // Get all of your unpublished posts
 export const getDraftPosts = async (req: Request, res: Response) => {
   console.debug("--- getDraftPosts ---");
-  const page: number = Number(req.query.page)
+  const page: number = Number(req.query.page);
 
   try {
     const user = await UserModel.findById((<any>req).user._id).exec();
@@ -219,7 +223,11 @@ export const getDraftPosts = async (req: Request, res: Response) => {
         user: user._id,
         published: false,
       },
-      { page: page, limit: POSTS_LIMIT, populate: { path: "user", select: PUBLIC_USER_INFO } }
+      {
+        page: page,
+        limit: POSTS_LIMIT,
+        populate: { path: "user", select: PUBLIC_USER_INFO },
+      }
     );
     return res.status(200).send(drafts);
   } catch (err) {
