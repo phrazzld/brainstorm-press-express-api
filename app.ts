@@ -55,11 +55,7 @@ db.once("open", () => {
 app.post("/api/connect", routes.verifyAccessToken, routes.connect);
 app.delete("/api/node", routes.deleteNode);
 app.get("/api/node/info", routes.getInfo);
-app.get(
-  "/api/nodes/:id/status",
-  routes.verifyAccessToken,
-  routes.getNodeStatus
-);
+app.get("/api/nodes/:id/status", routes.getNodeStatus);
 app.get("/api/drafts", routes.verifyAccessToken, routes.getDraftPosts);
 app.get("/api/posts/:id", routes.getPost);
 app.put("/api/posts/:id", routes.verifyAccessToken, routes.updatePost);
@@ -68,7 +64,7 @@ app.post("/api/posts", routes.verifyAccessToken, routes.createPost);
 app.delete("/api/posts/:id", routes.verifyAccessToken, routes.deletePost);
 app.post(
   "/api/posts/:id/invoice",
-  routes.verifyAccessToken,
+  //routes.verifyAccessToken,
   routes.postInvoice
 );
 app.post("/api/users", routes.createUser);

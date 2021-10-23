@@ -304,7 +304,6 @@ export const postInvoice = async (req: Request, res: Response) => {
     throw new Error("Post not found.");
   }
 
-  //const user = await UserModel.findById(post.user._id).populate("node").exec();
   const user = await UserModel.findById(post.user).populate("node").exec();
   if (!user) {
     throw new Error(
@@ -313,16 +312,15 @@ export const postInvoice = async (req: Request, res: Response) => {
   }
 
   // Throw an error if the requesting user is the author
-  if ((<any>req).user._id.toString() === user._id.toString()) {
-    throw new Error("Cannot invoice the author.");
-  }
+  //if ((<any>req).user._id.toString() === user._id.toString()) {
+  //  throw new Error("Cannot invoice the author.");
+  //}
 
   // TODO: Handle the case where the authoring user's node is not connected
   if (!user.node) {
     throw new Error("Author has no node connected.");
   }
 
-  //const node = await LndNodeModel.findById(user.node._id).exec();
   const node = await LndNodeModel.findById(user.node).exec();
   if (!node) {
     throw new Error("Node not found for this post.");
