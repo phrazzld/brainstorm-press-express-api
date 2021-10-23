@@ -11,6 +11,9 @@ import {
 } from "./models";
 import nodeManager from "./node-manager";
 
+const POSTS_LIMIT = 5
+const PUBLIC_USER_INFO = "_id name blog"
+
 const handleError = (err: any) => {
   console.error(err);
   if (err instanceof Error) {
@@ -89,7 +92,6 @@ export const connect = async (req: Request, res: Response) => {
       pubkey,
     });
     await node.save();
-    console.log("req.user:", (<any>req).user);
     await UserModel.findOneAndUpdate(
       { _id: (<any>req).user._id },
       { node: node._id }
@@ -161,10 +163,17 @@ export const getInfo = async (req: Request, res: Response) => {
 // GET /api/posts
 export const getPosts = async (req: Request, res: Response) => {
   console.debug("--- getPosts ---");
+  const page: number = Number(req.query.page)
+
   try {
-    const posts = await PostModel.find({ published: true })
-      .populate("user", "_id name blog")
-      .exec();
+    const posts = await PostModel.paginate(
+      { published: true },
+      {
+        page: page,
+        limit: POSTS_LIMIT,
+        populate: { path: "user", select: PUBLIC_USER_INFO },
+      }
+    );
     return res.send(posts);
   } catch (err) {
     handleError(err);
@@ -175,11 +184,18 @@ export const getPosts = async (req: Request, res: Response) => {
 // Get all posts written by a user
 export const getUserPosts = async (req: Request, res: Response) => {
   console.debug("--- getUserPosts ---");
+  const page: number = Number(req.query.page)
+
   try {
     const user = await UserModel.findById(req.params.id).exec();
-    const posts = await PostModel.find({ user: user._id, published: true })
-      .populate("user", "_id name blog")
-      .exec();
+    if (!user) {
+      throw new Error("Cannot find user to get posts for.");
+    }
+
+    const posts = await PostModel.paginate(
+      { user: user._id, published: true },
+      { page: page, limit: POSTS_LIMIT, populate: { path: "user", select: PUBLIC_USER_INFO } }
+    );
     return res.status(200).send(posts);
   } catch (err) {
     handleError(err);
@@ -190,14 +206,21 @@ export const getUserPosts = async (req: Request, res: Response) => {
 // Get all of your unpublished posts
 export const getDraftPosts = async (req: Request, res: Response) => {
   console.debug("--- getDraftPosts ---");
+  const page: number = Number(req.query.page)
+
   try {
     const user = await UserModel.findById((<any>req).user._id).exec();
-    const drafts = await PostModel.find({
-      user: user._id,
-      published: false,
-    })
-      .populate("user", "_id name blog")
-      .exec();
+    if (!user) {
+      throw new Error("Cannot find user to get drafts for.");
+    }
+
+    const drafts = await PostModel.paginate(
+      {
+        user: user._id,
+        published: false,
+      },
+      { page: page, limit: POSTS_LIMIT, populate: { path: "user", select: PUBLIC_USER_INFO } }
+    );
     return res.status(200).send(drafts);
   } catch (err) {
     handleError(err);
@@ -271,7 +294,8 @@ export const postInvoice = async (req: Request, res: Response) => {
     throw new Error("Post not found.");
   }
 
-  const user = await UserModel.findById(post.user._id).populate("node").exec();
+  //const user = await UserModel.findById(post.user._id).populate("node").exec();
+  const user = await UserModel.findById(post.user).populate("node").exec();
   if (!user) {
     throw new Error(
       "No authoring user found for this post, can't invoice a ghost."
@@ -288,7 +312,8 @@ export const postInvoice = async (req: Request, res: Response) => {
     throw new Error("Author has no node connected.");
   }
 
-  const node = await LndNodeModel.findById(user.node._id).exec();
+  //const node = await LndNodeModel.findById(user.node._id).exec();
+  const node = await LndNodeModel.findById(user.node).exec();
   if (!node) {
     throw new Error("Node not found for this post.");
   }
@@ -475,7 +500,8 @@ export const logPayment = async (req: Request, res: Response) => {
   }
   console.log("payingUser:", payingUser);
 
-  const receivingUser = await UserModel.findById(post.user._id).exec();
+  //const receivingUser = await UserModel.findById(post.user._id).exec();
+  const receivingUser = await UserModel.findById(post.user).exec();
   if (!receivingUser) {
     throw new Error("No user found to make payment to.");
   }
