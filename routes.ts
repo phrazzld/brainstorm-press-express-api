@@ -1,5 +1,5 @@
-import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
 import {
@@ -371,11 +371,6 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Create access token
     const accessToken = generateAccessToken(newUser);
-    //const accessToken = jwt.sign(
-    //  newUser.toJSON(),
-    //  process.env.ACCESS_TOKEN_SECRET as string,
-    //  { expiresIn: "15m" }
-    //);
     console.debug("accessToken:", accessToken);
 
     // Create refresh token

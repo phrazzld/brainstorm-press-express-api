@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { LndNodeModel } from "./models";
 import nodeManager, { NodeEvents } from "./node-manager";
 import * as routes from "./routes";
+import { seedDb } from "./seedDb";
 
 require("dotenv").config();
 
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 });
 
 // Database setup
+// TODO: Differentiate between dev and prod
 const mongoUri: string = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
 mongoose.connect(mongoUri);
@@ -41,7 +43,12 @@ db.on("error", (err) => {
   console.error(err);
 });
 db.once("open", () => {
-  console.log("Successfully connected to database.");
+  console.log("Successfully connected to the database.");
+  // If the database is empty, and we're in a development environment, seed it
+  console.log(`Environment: ${process.env.NODE_ENV}.`);
+  if (process.env.NODE_ENV === "development") {
+    seedDb();
+  }
 });
 
 // TODO: Refactor LND routes to verify both LND token and access token
@@ -97,7 +104,7 @@ app.ws("/api/events", (ws) => {
 
 // Start server
 app.listen(PORT, async () => {
-  console.log(`Listening on port ${PORT}`);
+  console.log(`Listening on port ${PORT}.`);
 
   const allNodes = await LndNodeModel.find({});
   await nodeManager.reconnectNodes(allNodes);

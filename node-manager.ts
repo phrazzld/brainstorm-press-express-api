@@ -76,11 +76,12 @@ class NodeManager extends EventEmitter {
     for (const node of nodes) {
       const { host, cert, macaroon, token } = node;
       try {
-        console.log(`Reconnecting to LND node ${host} for token ${token}`);
+        console.log(`Reconnecting to LND node ${host} for token ${token}...`);
         await this.connect(host, cert, macaroon, token);
+        console.log(`Connected to LND node ${host} with token ${token}.`);
       } catch (err) {
         console.error(
-          `Failed to reconnect to LND node ${host} with token ${token}`
+          `Failed to reconnect to LND node ${host} with token ${token}.`
         );
       }
     }
