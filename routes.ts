@@ -165,8 +165,16 @@ export const getPosts = async (req: Request, res: Response) => {
   console.debug("--- getPosts ---");
   const page: number = Number(req.query.page);
   const free = req.query.free;
+  const search = req.query.search;
 
-  const filter = free ? { published: true, price: 0 } : { published: true };
+  // TODO: Build more robust filter from page number, free flag, and search query
+  let filter = { published: true };
+  if (free) {
+    _.assign(filter, { price: 0 });
+  }
+  if (search) {
+    _.assign(filter, { $text: { $search: search } });
+  }
 
   try {
     const posts = await PostModel.paginate(filter, {
