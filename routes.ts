@@ -203,7 +203,10 @@ export const getUserPosts = async (req: Request, res: Response) => {
     const posts = await PostModel.paginate(filter, {
       page: page,
       limit: POSTS_LIMIT,
-      populate: { path: "user", select: PUBLIC_USER_INFO },
+      populate: [
+        { path: "user", select: PUBLIC_USER_INFO },
+        { path: "payments" },
+      ],
     });
     return res.status(200).send(posts);
   } catch (err) {
@@ -246,6 +249,7 @@ export const getPost = async (req: Request, res: Response) => {
   try {
     const post = await PostModel.findById(req.params.id)
       .populate("user", "_id username blog node")
+      .populate("payments")
       .exec();
     if (!post) {
       throw new Error("No post found.");
