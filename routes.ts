@@ -172,7 +172,10 @@ export const getPosts = async (req: Request, res: Response) => {
     const posts = await PostModel.paginate(filter, {
       page: page,
       limit: POSTS_LIMIT,
-      populate: { path: "user", select: PUBLIC_USER_INFO },
+      populate: [
+        { path: "user", select: PUBLIC_USER_INFO },
+        { path: "payments" },
+      ],
     });
     return res.send(posts);
   } catch (err) {
@@ -541,6 +544,10 @@ export const logPayment = async (req: Request, res: Response) => {
     postId: post._id,
   });
   await postPayment.save();
+
+  // Save payment to the post
+  post.payments.push(postPayment._id);
+  await post.save();
 
   return res.status(200).send(post);
 };

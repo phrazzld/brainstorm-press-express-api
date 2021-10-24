@@ -11,6 +11,7 @@ export interface Post extends Document {
   price: number;
   published: boolean;
   user: Schema.Types.ObjectId;
+  payments: Array<Schema.Types.ObjectId>;
   paginate: () => void;
 }
 
@@ -20,6 +21,7 @@ const PostSchema: Schema = new Schema<Post>({
   price: { type: Number, required: true },
   published: { type: Boolean, required: true, default: false },
   user: { type: Schema.Types.ObjectId, ref: "User" },
+  payments: [{ type: Schema.Types.ObjectId, ref: "PostPayment" }],
 });
 
 PostSchema.plugin(mongoosePaginate);
