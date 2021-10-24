@@ -49,21 +49,24 @@ export const seedDb = async (): Promise<void> => {
     // Create some users
     const alicePw = await bcrypt.hash("alice", 10);
     const alice = await UserModel.create({
-      name: "Alice",
+      username: "Alice",
+      email: "alice@test.net",
       blog: "Awesome Stories",
       password: alicePw,
     });
 
     const bobPw = await bcrypt.hash("bob", 10);
     const bob = await UserModel.create({
-      name: "Bob",
+      username: "Bob",
+      email: "bob@bobrules.com",
       blog: "Bonkers Blabs",
       password: bobPw,
     });
 
     const carolPw = await bcrypt.hash("carol", 10);
     const carol = await UserModel.create({
-      name: "Carol",
+      username: "Carol",
+      email: "carol@aol.com",
       blog: "Cooking Tips and Tricks",
       password: carolPw,
     });

@@ -12,7 +12,7 @@ import {
 import nodeManager from "./node-manager";
 
 const POSTS_LIMIT = 5;
-const PUBLIC_USER_INFO = "_id name blog";
+const PUBLIC_USER_INFO = "_id username blog";
 
 const handleError = (err: any) => {
   console.error(err);
@@ -26,7 +26,7 @@ const handleError = (err: any) => {
 const generateAccessToken = (user: any): string => {
   console.debug("--- generateAccessToken ---");
   return jwt.sign(
-    { _id: user._id, name: user.name },
+    { _id: user._id, username: user.username },
     process.env.ACCESS_TOKEN_SECRET as string,
     {
       expiresIn: "15s",
@@ -37,7 +37,7 @@ const generateAccessToken = (user: any): string => {
 const generateRefreshToken = async (user: any): Promise<string> => {
   console.debug("--- generateRefreshToken ---");
   const refreshToken = jwt.sign(
-    { _id: user._id, name: user.name },
+    { _id: user._id, username: user.username },
     process.env.REFRESH_TOKEN_SECRET as string
   );
 
@@ -242,7 +242,7 @@ export const getPost = async (req: Request, res: Response) => {
   console.debug("--- getPost ---");
   try {
     const post = await PostModel.findById(req.params.id)
-      .populate("user", "_id name blog node")
+      .populate("user", "_id username blog node")
       .exec();
     if (!post) {
       throw new Error("No post found.");
@@ -343,15 +343,18 @@ export const createUser = async (req: Request, res: Response) => {
   console.debug("--- createUser ---");
   try {
     // Get user input
-    const { name, blog, password } = req.body;
+    const { username, email, blog, password } = req.body;
 
     // Validate user input
-    if (!(name && blog && password)) {
+    if (!(username && email && blog && password)) {
       return res.status(400).send("All inputs are required.");
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ name }).exec();
+    const existingUser = await UserModel.findOne({
+      $or: [{ username }, { email }],
+    }).exec();
+    console.log("existingUser:", existingUser);
     if (existingUser) {
       return res.status(409).send("User already exists. Please login.");
     }
@@ -361,7 +364,8 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Create user
     const newUser = await UserModel.create({
-      name,
+      username,
+      email,
       blog,
       password: encryptedPassword,
     });
@@ -429,15 +433,15 @@ export const login = async (req: Request, res: Response) => {
   console.debug("--- login ---");
   try {
     // Get user input
-    const { name, password } = req.body;
+    const { email, password } = req.body;
 
     // Validate user input
-    if (!(name && password)) {
+    if (!(email && password)) {
       return res.status(400).send("All input is required.");
     }
 
     // Find user
-    const user = await UserModel.findOne({ name }).populate("node").exec();
+    const user = await UserModel.findOne({ email }).populate("node").exec();
     console.debug("user:", user);
 
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -503,7 +507,6 @@ export const logPayment = async (req: Request, res: Response) => {
   }
   console.log("payingUser:", payingUser);
 
-  //const receivingUser = await UserModel.findById(post.user._id).exec();
   const receivingUser = await UserModel.findById(post.user).exec();
   if (!receivingUser) {
     throw new Error("No user found to make payment to.");

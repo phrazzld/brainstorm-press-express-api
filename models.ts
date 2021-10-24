@@ -1,5 +1,5 @@
 import { model, Schema, Document, PaginateModel } from "mongoose";
-import mongoosePaginate from 'mongoose-paginate-v2'
+import mongoosePaginate from "mongoose-paginate-v2";
 
 //
 // Posts
@@ -22,7 +22,7 @@ const PostSchema: Schema = new Schema<Post>({
   user: { type: Schema.Types.ObjectId, ref: "User" },
 });
 
-PostSchema.plugin(mongoosePaginate)
+PostSchema.plugin(mongoosePaginate);
 
 interface PostModel<T extends Document> extends PaginateModel<T> {}
 
@@ -55,17 +55,19 @@ export const LndNodeModel = model("LndNode", LndNodeSchema);
 //
 
 export interface User {
-  name: string;
-  blog: string;
+  username: string;
+  email: string;
   password: string;
+  blog: string;
   node: Schema.Types.ObjectId;
   refreshToken?: string;
 }
 
 const UserSchema = new Schema<User>({
-  name: { type: String, required: true },
-  blog: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  blog: { type: String, required: true },
   node: { type: Schema.Types.ObjectId, ref: "LndNode" },
   refreshToken: { type: String },
 });
