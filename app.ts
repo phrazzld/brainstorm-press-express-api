@@ -64,7 +64,7 @@ app.post("/api/posts", routes.verifyAccessToken, routes.createPost);
 app.delete("/api/posts/:id", routes.verifyAccessToken, routes.deletePost);
 app.post(
   "/api/posts/:id/invoice",
-  //routes.verifyAccessToken,
+  routes.verifyAccessToken,
   routes.postInvoice
 );
 app.post("/api/users", routes.createUser);

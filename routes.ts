@@ -312,9 +312,9 @@ export const postInvoice = async (req: Request, res: Response) => {
   }
 
   // Throw an error if the requesting user is the author
-  //if ((<any>req).user._id.toString() === user._id.toString()) {
-  //  throw new Error("Cannot invoice the author.");
-  //}
+  if ((<any>req).user._id.toString() === user._id.toString()) {
+    throw new Error("Cannot invoice the author.");
+  }
 
   // TODO: Handle the case where the authoring user's node is not connected
   if (!user.node) {
