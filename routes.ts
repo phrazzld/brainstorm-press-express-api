@@ -447,6 +447,19 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
+// GET /api/users/:id
+// Get public user info
+export const getUser = async (req: Request, res: Response) => {
+  console.debug("--- getUser ---");
+  try {
+    const { id } = req.params;
+    const user = await UserModel.findById(id).select(PUBLIC_USER_INFO).exec();
+    res.status(200).send(user);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
 // POST /api/login
 export const login = async (req: Request, res: Response) => {
   console.debug("--- login ---");

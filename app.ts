@@ -80,6 +80,7 @@ app.post(
 );
 app.post("/api/accessToken", routes.createAccessToken);
 app.delete("/api/refreshToken", routes.deleteRefreshToken);
+app.get("/api/users/:id", routes.verifyAccessToken, routes.getUser);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
