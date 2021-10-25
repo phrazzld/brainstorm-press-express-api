@@ -167,7 +167,6 @@ export const getPosts = async (req: Request, res: Response) => {
   const free = req.query.free;
   const search = req.query.search;
 
-  // TODO: Build more robust filter from page number, free flag, and search query
   let filter = { published: true };
   if (free) {
     _.assign(filter, { price: 0 });
@@ -197,6 +196,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
   console.debug("--- getUserPosts ---");
   const page: number = Number(req.query.page);
   const free = req.query.free;
+  const search = req.query.search;
 
   try {
     const user = await UserModel.findById(req.params.id).exec();
@@ -204,9 +204,13 @@ export const getUserPosts = async (req: Request, res: Response) => {
       throw new Error("Cannot find user to get posts for.");
     }
 
-    const filter = free
-      ? { user: user._id, published: true, price: 0 }
-      : { user: user._id, published: true };
+    let filter = { user: user._id, published: true };
+    if (free) {
+      _.assign(filter, { price: 0 });
+    }
+    if (search) {
+      _.assign(filter, { $text: { $search: search } });
+    }
 
     const posts = await PostModel.paginate(filter, {
       page: page,
