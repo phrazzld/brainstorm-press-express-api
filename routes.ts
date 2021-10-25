@@ -12,7 +12,7 @@ import {
 import nodeManager from "./node-manager";
 
 const POSTS_LIMIT = 5;
-const PUBLIC_USER_INFO = "_id username blog";
+const PUBLIC_USER_INFO = "_id username blog btcAddress";
 
 const handleError = (err: any) => {
   console.error(err);
@@ -415,12 +415,12 @@ export const createUser = async (req: Request, res: Response) => {
 // Update a user
 export const updateUser = async (req: Request, res: Response) => {
   console.debug("--- updateUser ---");
-  const { blog } = req.body;
+  const { blog, btcAddress } = req.body;
 
   try {
     const user = await UserModel.findOneAndUpdate(
       { _id: (<any>req).user._id },
-      { blog: blog },
+      { blog: blog, btcAddress: btcAddress },
       { new: true }
     );
     res.status(204).send(user);

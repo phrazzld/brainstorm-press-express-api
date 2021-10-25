@@ -64,6 +64,7 @@ export interface User {
   password: string;
   blog: string;
   node: Schema.Types.ObjectId;
+  btcAddress?: string;
   refreshToken?: string;
 }
 
@@ -73,6 +74,7 @@ const UserSchema = new Schema<User>({
   password: { type: String, required: true },
   blog: { type: String, required: true },
   node: { type: Schema.Types.ObjectId, ref: "LndNode" },
+  btcAddress: { type: String },
   refreshToken: { type: String },
 });
 
