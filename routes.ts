@@ -194,12 +194,13 @@ export const getPosts = async (req: Request, res: Response) => {
 // Get all posts written by a user
 export const getUserPosts = async (req: Request, res: Response) => {
   console.debug("--- getUserPosts ---");
+  console.log("req.params:", req.params);
   const page: number = Number(req.query.page);
   const free = req.query.free;
   const search = req.query.search;
 
   try {
-    const user = await UserModel.findById(req.params.id).exec();
+    const user = await UserModel.findOne({ username: req.params.id }).exec();
     if (!user) {
       throw new Error("Cannot find user to get posts for.");
     }
@@ -371,6 +372,12 @@ export const createUser = async (req: Request, res: Response) => {
         .send({ error: "Please enter a username, email, and password." });
     }
 
+    // Validate username
+    const invalidUsernameCheck = new RegExp(/[^a-zA-Z0-9_-]/gi);
+    if (invalidUsernameCheck.test(username)) {
+      return res.status(400).send({ error: "Invalid username." });
+    }
+
     // Check if username is taken
     const usernameTaken = await UserModel.findOne({ username }).exec();
     if (usernameTaken) {
@@ -457,8 +464,11 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
   console.debug("--- getUser ---");
   try {
+    console.log("req.params:", req.params);
     const { id } = req.params;
-    const user = await UserModel.findById(id).select(PUBLIC_USER_INFO).exec();
+    const user = await UserModel.findOne({ username: id })
+      .select(PUBLIC_USER_INFO)
+      .exec();
     res.status(200).send(user);
   } catch (err) {
     handleError(err);
