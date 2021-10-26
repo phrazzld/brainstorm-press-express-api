@@ -366,16 +366,21 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Validate user input
     if (!(username && email && blog && password)) {
-      return res.status(400).send("All inputs are required.");
+      return res
+        .status(400)
+        .send({ error: "Please enter a username, email, and password." });
     }
 
-    // Check if user already exists
-    const existingUser = await UserModel.findOne({
-      $or: [{ username }, { email }],
-    }).exec();
-    console.log("existingUser:", existingUser);
-    if (existingUser) {
-      return res.status(409).send("User already exists. Please login.");
+    // Check if username is taken
+    const usernameTaken = await UserModel.findOne({ username }).exec();
+    if (usernameTaken) {
+      return res.status(409).send({ error: "Username taken." });
+    }
+
+    // Check if email is taken
+    const emailTaken = await UserModel.findOne({ email }).exec();
+    if (emailTaken) {
+      return res.status(409).send({ error: "Email taken." });
     }
 
     // Encrypt password
@@ -469,7 +474,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Validate user input
     if (!(email && password)) {
-      return res.status(400).send("All input is required.");
+      return res.status(400).send({ error: "Invalid credentials." });
     }
 
     // Find user
@@ -498,7 +503,7 @@ export const login = async (req: Request, res: Response) => {
         refreshToken: refreshToken,
       });
     }
-    return res.status(400).send("Invalid credentials.");
+    return res.status(400).send({ error: "Invalid credentials." });
   } catch (err) {
     handleError(err);
   }
