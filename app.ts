@@ -2,15 +2,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
-import mongoose from "mongoose";
-import { LndNodeModel } from "./models";
 import nodeManager, { NodeEvents } from "./node-manager";
 import * as routes from "./routes";
-import { seedDb } from "./seedDb";
-
-require("dotenv").config();
-
-const PORT: number = 4000;
 
 const SocketEvents = {
   postUpdated: "post-updated",
@@ -31,24 +24,6 @@ app.use((req, res, next) => {
     "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization"
   );
   next();
-});
-
-// Database setup
-// TODO: Differentiate between dev and prod
-const mongoUri: string = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
-
-mongoose.connect(mongoUri);
-const db = mongoose.connection;
-db.on("error", (err) => {
-  console.error(err);
-});
-db.once("open", () => {
-  console.log("Successfully connected to the database.");
-  // If the database is empty, and we're in a development environment, seed it
-  console.log(`Environment: ${process.env.NODE_ENV}.`);
-  if (process.env.NODE_ENV === "development") {
-    seedDb();
-  }
 });
 
 // TODO: Refactor LND routes to verify both LND token and access token
@@ -99,10 +74,4 @@ app.ws("/api/events", (ws) => {
   });
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`Listening on port ${PORT}.`);
-
-  const allNodes = await LndNodeModel.find({});
-  await nodeManager.reconnectNodes(allNodes);
-});
+export default app;
