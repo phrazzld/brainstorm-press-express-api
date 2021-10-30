@@ -56,6 +56,8 @@ app.post(
 app.post("/api/accessToken", routes.createAccessToken);
 app.delete("/api/refreshToken", routes.deleteRefreshToken);
 app.get("/api/users/:id", routes.getUser);
+app.post("/api/password-reset", routes.sendResetPasswordEmail);
+app.post("/api/password-reset/:userId/:token", routes.resetPassword);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {

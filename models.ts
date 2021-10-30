@@ -102,12 +102,32 @@ export const PostPaymentModel = model("PostPayment", PostPaymentSchema);
 // RefreshTokens
 //
 
-export interface RefreshToken {
+export interface Token {
   token: string;
 }
 
-const RefreshTokenSchema = new Schema<RefreshToken>({
+const RefreshTokenSchema = new Schema<Token>({
   token: { type: String, required: true },
 });
 
 export const RefreshTokenModel = model("RefreshToken", RefreshTokenSchema);
+
+//
+// PasswordResetTokens
+//
+
+export interface PasswordResetToken extends Token {
+  userId: string;
+}
+
+const PasswordResetTokenSchema = new Schema<PasswordResetToken>({
+  userId: { type: String, required: true },
+  token: { type: String, required: true },
+});
+
+PasswordResetTokenSchema.index({ userId: 1 }, { unique: true });
+
+export const PasswordResetTokenModel = model(
+  "PasswordResetToken",
+  PasswordResetTokenSchema
+);

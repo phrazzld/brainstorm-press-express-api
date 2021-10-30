@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
@@ -8,8 +9,10 @@ import {
   PostPaymentModel,
   RefreshTokenModel,
   UserModel,
+  PasswordResetTokenModel,
 } from "./models";
 import nodeManager from "./node-manager";
+import { sendEmail } from "./sendEmail";
 
 const POSTS_LIMIT = 5;
 const PUBLIC_USER_INFO = "_id username blog btcAddress";
@@ -638,4 +641,71 @@ export const createAccessToken = async (req: Request, res: Response) => {
       return res.status(200).json(accessToken);
     }
   );
+};
+
+export const sendResetPasswordEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res
+        .status(400)
+        .send({ error: "Email is required to reset password." });
+    }
+
+    const user = await UserModel.findOne({ email }).exec();
+    if (!user) {
+      return res.status(400).send({ error: "No user found with that email." });
+    }
+
+    let passwordResetToken = await PasswordResetTokenModel.findOne({
+      userId: user._id,
+    }).exec();
+    if (!passwordResetToken) {
+      passwordResetToken = await PasswordResetTokenModel.create({
+        userId: user._id,
+        token: crypto.randomBytes(32).toString("hex"),
+      });
+    }
+
+    const link = `${process.env.BASE_URL}/reset-password/${user._id}/${passwordResetToken.token}`;
+    await sendEmail(user.email, "Password reset", link);
+
+    res.send({ message: "Password reset link emailed." });
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { userId, token } = req.params;
+    const { password } = req.body;
+
+    const user = await UserModel.findById(userId).exec();
+    if (!user) {
+      return res.status(400).send({ error: "No user found with that ID." });
+    }
+
+    const passwordResetToken = await PasswordResetTokenModel.findOne({
+      userId: user._id,
+      token: token,
+    }).exec();
+    if (!passwordResetToken) {
+      return res
+        .status(400)
+        .send({ error: "Invalid link, or token has expired." });
+    }
+
+    const encryptedPassword = await bcrypt.hash(password, 10);
+    user.password = encryptedPassword;
+    await user.save();
+    await PasswordResetTokenModel.deleteOne({
+      userId: user._id,
+      token: token,
+    }).exec();
+
+    res.send("Successfully reset password.");
+  } catch (err) {
+    handleError(err);
+  }
 };
