@@ -1,7 +1,7 @@
 import createLnRpc, { LnRpc } from "@radar/lnrpc";
 import { EventEmitter } from "events";
 import { v4 as uuidv4 } from "uuid";
-import { LndNode } from "./models";
+import { LndNode } from "./models/lnd-node";
 
 export const NodeEvents = {
   invoicePaid: "invoice-paid",

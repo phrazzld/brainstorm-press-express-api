@@ -1,7 +1,7 @@
-import app from "./app";
-import { LndNodeModel } from "./models";
-import nodeManager from "./node-manager";
 import mongoose from "mongoose";
+import app from "./app";
+import { LndNodeModel } from "./models/lnd-node";
+import nodeManager from "./node-manager";
 import { seedDb } from "./seedDb";
 require("dotenv").config();
 

@@ -2,7 +2,8 @@ import bcrypt from "bcryptjs";
 import faker from "faker";
 import * as _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { PostModel, UserModel } from "./models";
+import { PostModel } from "./models/post";
+import { UserModel } from "./models/user";
 
 type DraftJsBlock = {
   key: string;

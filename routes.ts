@@ -3,14 +3,12 @@ import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
-import {
-  LndNodeModel,
-  PasswordResetTokenModel,
-  PostModel,
-  PostPaymentModel,
-  RefreshTokenModel,
-  UserModel,
-} from "./models";
+import { LndNodeModel } from "./models/lnd-node";
+import { PasswordResetTokenModel } from "./models/password-reset-token";
+import { PostModel } from "./models/post";
+import { PostPaymentModel } from "./models/post-payment";
+import { RefreshTokenModel } from "./models/refresh-token";
+import { UserModel } from "./models/user";
 import nodeManager from "./node-manager";
 import { sendEmail } from "./sendEmail";
 
