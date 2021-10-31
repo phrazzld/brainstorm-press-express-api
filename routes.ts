@@ -10,7 +10,7 @@ import { PostPaymentModel } from "./models/post-payment";
 import { RefreshTokenModel } from "./models/refresh-token";
 import { UserModel } from "./models/user";
 import nodeManager from "./node-manager";
-import { sendEmail } from "./sendEmail";
+import { sendEmail } from "./send-email";
 
 const POSTS_LIMIT = 5;
 const PUBLIC_USER_INFO = "_id username blog btcAddress";

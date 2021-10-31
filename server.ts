@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import app from "./app";
 import { LndNodeModel } from "./models/lnd-node";
 import nodeManager from "./node-manager";
-import { seedDb } from "./seedDb";
+import { seedDb } from "./seed-db";
 require("dotenv").config();
 
 const PORT: number = 4000;
