@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
 import nodeManager, { NodeEvents } from "./node-manager";
-import * as routes from "./routes";
+import router from "./routes";
 
 const SocketEvents = {
   postUpdated: "post-updated",
@@ -26,38 +26,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/api/connect", routes.verifyAccessToken, routes.connect);
-app.delete("/api/node", routes.deleteNode);
-app.get("/api/node/info", routes.getInfo);
-app.get("/api/nodes/:id/status", routes.getNodeStatus);
-app.get("/api/drafts", routes.verifyAccessToken, routes.getDraftPosts);
-app.get("/api/posts/:id", routes.getPost);
-app.put("/api/posts/:id", routes.verifyAccessToken, routes.updatePost);
-app.get("/api/posts", routes.getPosts);
-app.post("/api/posts", routes.verifyAccessToken, routes.createPost);
-app.delete("/api/posts/:id", routes.verifyAccessToken, routes.deletePost);
-app.post(
-  "/api/posts/:id/invoice",
-  routes.verifyAccessToken,
-  routes.postInvoice
-);
-app.post("/api/users", routes.createUser);
-app.get("/api/users/:id/posts", routes.getUserPosts);
-app.put("/api/users/:id", routes.verifyAccessToken, routes.updateUser);
-app.get("/api/users/current", routes.verifyAccessToken, routes.getCurrentUser);
-app.post("/api/login", routes.login);
-app.get("/api/posts/:id/payments", routes.verifyAccessToken, routes.getPayment);
-app.post(
-  "/api/posts/:id/payments",
-  routes.verifyAccessToken,
-  routes.logPayment
-);
-app.post("/api/accessToken", routes.createAccessToken);
-app.delete("/api/refreshToken", routes.deleteRefreshToken);
-app.get("/api/users/:id", routes.getUser);
-app.post("/api/password-reset", routes.sendResetPasswordEmail);
-app.post("/api/password-reset/:userId/:token", routes.resetPassword);
-app.delete("/api/users/:id", routes.verifyAccessToken, routes.deleteUser);
+app.use("/api", router);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
