@@ -1,15 +1,15 @@
-import { NextFunction, Request, Response } from "express";
-import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
 import {
   LndNodeModel,
+  PasswordResetTokenModel,
   PostModel,
   PostPaymentModel,
   RefreshTokenModel,
   UserModel,
-  PasswordResetTokenModel,
 } from "./models";
 import nodeManager from "./node-manager";
 import { sendEmail } from "./sendEmail";
@@ -644,6 +644,7 @@ export const createAccessToken = async (req: Request, res: Response) => {
 };
 
 export const sendResetPasswordEmail = async (req: Request, res: Response) => {
+  console.debug("--- sendResetPasswordEmail ---");
   try {
     const { email } = req.body;
     if (!email) {
@@ -681,6 +682,7 @@ export const sendResetPasswordEmail = async (req: Request, res: Response) => {
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
+  console.debug("--- resetPassword ---");
   try {
     const { userId, token } = req.params;
     const { password } = req.body;
@@ -709,6 +711,38 @@ export const resetPassword = async (req: Request, res: Response) => {
     }).exec();
 
     res.send("Successfully reset password.");
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  console.debug("--- deleteUser ---");
+  const { id } = req.params;
+  if (!id) {
+    throw new Error("Cannot find user to delete.");
+  }
+
+  try {
+    const user = await UserModel.findById(id).exec();
+    if (!user) {
+      throw new Error("Cannot find user to delete.");
+    }
+
+    // Delete associated data
+    await PostModel.deleteMany({ user: user._id }).exec();
+    if (user.node) {
+      await LndNodeModel.deleteOne({ _id: user.node }).exec();
+    }
+    await PostPaymentModel.deleteMany({ userId: user._id }).exec();
+    if (user.refreshToken) {
+      await RefreshTokenModel.deleteOne({ _id: user.refreshToken }).exec();
+    }
+
+    // Delete user
+    await UserModel.deleteOne({ _id: id }).exec();
+
+    return res.status(204).send("User deleted successfully.");
   } catch (err) {
     handleError(err);
   }

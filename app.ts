@@ -26,7 +26,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// TODO: Refactor LND routes to verify both LND token and access token
 app.post("/api/connect", routes.verifyAccessToken, routes.connect);
 app.delete("/api/node", routes.deleteNode);
 app.get("/api/node/info", routes.getInfo);
@@ -58,6 +57,7 @@ app.delete("/api/refreshToken", routes.deleteRefreshToken);
 app.get("/api/users/:id", routes.getUser);
 app.post("/api/password-reset", routes.sendResetPasswordEmail);
 app.post("/api/password-reset/:userId/:token", routes.resetPassword);
+app.delete("/api/users/:id", routes.verifyAccessToken, routes.deleteUser);
 
 // Configure Websocket
 app.ws("/api/events", (ws) => {
