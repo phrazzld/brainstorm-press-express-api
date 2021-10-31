@@ -1,9 +1,9 @@
 import express from "express";
-import nodesRouter from "./routes/lnd-nodes";
-import postsRouter from "./routes/posts";
-import resetPasswordRouter from "./routes/reset-password";
-import tokensRouter from "./routes/tokens";
-import usersRouter from "./routes/users";
+import nodesRouter from "./lnd-nodes";
+import postsRouter from "./posts";
+import resetPasswordRouter from "./reset-password";
+import tokensRouter from "./tokens";
+import usersRouter from "./users";
 
 const router = express.Router();
 

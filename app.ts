@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
 import nodeManager, { NodeEvents } from "./node-manager";
-import router from "./routes";
+import router from "./routes/index";
 
 const SocketEvents = {
   postUpdated: "post-updated",
