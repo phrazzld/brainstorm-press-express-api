@@ -94,12 +94,12 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   console.debug("--- updateUser ---");
-  const { blog, btcAddress } = req.body;
+  const { email, blog, btcAddress } = req.body;
 
   try {
     const user = await UserModel.findOneAndUpdate(
       { _id: (<any>req).user._id },
-      { blog: blog, btcAddress: btcAddress },
+      { email: email, blog: blog, btcAddress: btcAddress },
       { new: true }
     );
     res.status(204).send(user);
