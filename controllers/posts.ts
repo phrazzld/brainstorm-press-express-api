@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import { LndNodeModel } from "../models/lnd-node";
 import { PostModel } from "../models/post";
 import { PostPaymentModel } from "../models/post-payment";
+import { SubscriptionModel } from "../models/subscription";
 import { UserModel } from "../models/user";
 import nodeManager from "../node-manager";
 import { handleError, PUBLIC_USER_INFO } from "../routes/utils";
@@ -102,6 +103,36 @@ export const getDraftPosts = async (req: Request, res: Response) => {
       }
     );
     return res.status(200).send(drafts);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+export const getPostsFromSubscriptions = async (
+  req: Request,
+  res: Response
+) => {
+  console.debug("--- getPostsFromSubscriptions ---");
+  const page: number = Number(req.query.page);
+
+  try {
+    const user = await UserModel.findById((<any>req).user._id).exec();
+    if (!user) {
+      throw new Error("Cannot find user to get subs for.");
+    }
+    const subs = await SubscriptionModel.find({ reader: user._id }).exec();
+    const posts = await PostModel.paginate(
+      {
+        user: { $in: subs.map((sub) => sub.author) },
+        published: true,
+      },
+      {
+        page: page,
+        limit: POSTS_LIMIT,
+        populate: { path: "user", select: PUBLIC_USER_INFO },
+      }
+    );
+    return res.status(200).send(posts);
   } catch (err) {
     handleError(err);
   }

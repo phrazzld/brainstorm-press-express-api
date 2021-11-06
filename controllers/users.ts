@@ -114,6 +114,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ _id: (<any>req).user._id })
       .populate("node")
       .exec();
+
     res.status(200).send(user);
   } catch (err) {
     handleError(err);

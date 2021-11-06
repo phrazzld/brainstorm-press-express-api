@@ -6,6 +6,7 @@ import {
   getPayment,
   getPost,
   getPosts,
+  getPostsFromSubscriptions,
   getUserPosts,
   logPayment,
   postInvoice,
@@ -17,6 +18,8 @@ const router = express.Router();
 
 router.get("/", getPosts);
 router.post("/", verifyAccessToken, createPost);
+
+router.get("/subscriptions", verifyAccessToken, getPostsFromSubscriptions);
 
 router.get("/:id", getPost);
 router.put("/:id", verifyAccessToken, updatePost);

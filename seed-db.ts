@@ -20,6 +20,14 @@ type DraftJsContent = {
   entityMap: object;
 };
 
+const generateTitle = (): string => {
+  const r = Math.random();
+  if (r < 0.5) {
+    return faker.company.bs();
+  }
+  return faker.animal.snake();
+};
+
 const generateContent = (): string => {
   const draftJsContent: DraftJsContent = {
     blocks: [
@@ -53,6 +61,7 @@ export const seedDb = async (): Promise<void> => {
       username: "Alice",
       email: "alice@test.net",
       blog: "Awesome Stories",
+      btcAddress: faker.finance.bitcoinAddress(),
       password: alicePw,
     });
 
@@ -72,18 +81,28 @@ export const seedDb = async (): Promise<void> => {
       password: carolPw,
     });
 
-    const users = [alice, bob, carol];
+    const davePw = await bcrypt.hash("dave", 10);
+    const dave = await UserModel.create({
+      username: "Dave",
+      email: "dave@test.net",
+      blog: "Film Stuff",
+      btcAddress: faker.finance.bitcoinAddress(),
+      password: davePw,
+    });
+
+    const users = [alice, bob, carol, dave];
 
     // Create some posts
     for (let i = 0; i < 100; i++) {
-      const user = _.sample(users);
-      const title = faker.company.bs();
+      const user = _.sample(users) || alice;
+      const title = generateTitle();
+      //const title = faker.company.bs();
       PostModel.create({
         title: title.charAt(0).toUpperCase() + title.slice(1),
         content: generateContent(),
-        price: Math.random() < 0.5 ? 0 : Math.floor(Math.random() * 10000),
-        published: Math.random() < 0.5 ? true : false,
-        user: user ? user._id : alice._id,
+        price: Math.random() < 0.3 ? 0 : Math.floor(Math.random() * 10000),
+        published: Math.random() < 0.3 ? true : false,
+        user: user._id,
       });
     }
     console.debug("Finished seeding database.");
