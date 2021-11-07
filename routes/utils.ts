@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as _ from "lodash";
 
-export const PUBLIC_USER_INFO = "_id username blog btcAddress";
+export const PUBLIC_USER_INFO =
+  "_id username blog subscriptionPrice btcAddress";
 
 export const handleError = (err: any) => {
   console.error(err);

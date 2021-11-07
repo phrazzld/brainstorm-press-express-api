@@ -8,6 +8,7 @@ export interface User {
   node: Schema.Types.ObjectId;
   btcAddress?: string;
   refreshToken?: string;
+  subscriptionPrice?: number;
 }
 
 const UserSchema = new Schema<User>({
@@ -18,6 +19,7 @@ const UserSchema = new Schema<User>({
   node: { type: Schema.Types.ObjectId, ref: "LndNode" },
   btcAddress: { type: String },
   refreshToken: { type: String },
+  subscriptionPrice: { type: Number },
 });
 
 export const UserModel = model("User", UserSchema);
