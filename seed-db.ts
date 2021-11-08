@@ -96,13 +96,12 @@ export const seedDb = async (): Promise<void> => {
     for (let i = 0; i < 100; i++) {
       const user = _.sample(users) || alice;
       const title = generateTitle();
-      //const title = faker.company.bs();
       PostModel.create({
         title: title.charAt(0).toUpperCase() + title.slice(1),
         content: generateContent(),
-        price: Math.random() < 0.3 ? 0 : Math.floor(Math.random() * 10000),
         published: Math.random() < 0.3 ? true : false,
         user: user._id,
+        premium: Math.random() < 0.4 ? true : false,
       });
     }
     console.debug("Finished seeding database.");

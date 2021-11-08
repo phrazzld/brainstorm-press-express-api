@@ -5,10 +5,11 @@ import {
   getNode,
   getNodeStatus,
 } from "../controllers/lnd-nodes";
+import { verifyAccessToken } from "./utils";
 
 const router = express.Router();
 
-router.post("/", connectNode);
+router.post("/", verifyAccessToken, connectNode);
 
 router.get("/", getNode);
 router.delete("/", deleteNode);

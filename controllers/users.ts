@@ -2,15 +2,23 @@ import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { LndNodeModel } from "../models/lnd-node";
+import { PaymentModel } from "../models/payment";
 import { PostModel } from "../models/post";
 import { PostPaymentModel } from "../models/post-payment";
 import { RefreshTokenModel } from "../models/refresh-token";
 import { UserModel } from "../models/user";
+import nodeManager from "../node-manager";
 import {
   generateAccessToken,
   handleError,
   PUBLIC_USER_INFO,
 } from "../routes/utils";
+
+// Get date for thirty days ago
+const getThirtyDaysAgo = () => {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  return thirtyDaysAgo;
+};
 
 const generateRefreshToken = async (user: any): Promise<string> => {
   console.debug("--- generateRefreshToken ---");
@@ -210,6 +218,106 @@ export const deleteUser = async (req: Request, res: Response) => {
     await UserModel.deleteOne({ _id: id }).exec();
 
     return res.status(204).send("User deleted successfully.");
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// Get payments made by reader to author
+export const getPaymentsToUser = async (req: Request, res: Response) => {
+  console.debug("--- getPaymentsToUser ---");
+  try {
+    const { id } = req.params;
+    const author = await UserModel.findById(id).exec();
+    if (!author) {
+      throw new Error("Cannot find author to get payments for.");
+    }
+
+    const payments = await PaymentModel.find({
+      reader: (<any>req).user._id,
+      author: author._id,
+    }).exec();
+    res.status(200).send(payments);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// Log payment to user
+export const logPayment = async (req: Request, res: Response) => {
+  console.debug("--- users::logPayment ---");
+  const { id } = req.params;
+  const { hash } = req.body;
+
+  try {
+    const user = await UserModel.findById(id).exec();
+    if (!user) {
+      throw new Error("Cannot find author to log payment to.");
+    }
+
+    if (!hash) {
+      throw new Error("Cannot verify invoice was paid without hash.");
+    }
+
+    // Get author's node
+    const node = await LndNodeModel.findById(user.node).exec();
+    if (!node) {
+      throw new Error("Cannot find author's node.");
+    }
+
+    // Check if invoice has been paid
+    const rpc = nodeManager.getRpc(node.token);
+    const rHash = Buffer.from(hash, "base64");
+    const { settled } = await rpc.lookupInvoice({ rHash });
+    if (!settled) {
+      throw new Error("Invoice has not been paid.");
+    }
+
+    // Don't log payment if already logged
+    const existingPayment = await PaymentModel.findOne({
+      reader: (<any>req).user._id,
+      author: user._id,
+      createdAt: { $gte: getThirtyDaysAgo() },
+    }).exec();
+
+    if (existingPayment) {
+      return res.status(400).send("Payment already logged.");
+    }
+
+    const payment = await PaymentModel.create({
+      reader: (<any>req).user._id,
+      author: user._id,
+    });
+
+    return res.status(200).send(payment);
+  } catch (err) {
+    handleError(err);
+  }
+};
+
+// Check whether reader has paid author
+export const hasPaidAuthor = async (req: Request, res: Response) => {
+  console.debug("--- users::hasPaidAuthor ---");
+  const { id } = req.params;
+
+  try {
+    const author = await UserModel.findById(id).exec();
+    if (!author) {
+      throw new Error("Cannot find author to check payment for.");
+    }
+
+    console.log("getThirtyDaysAgo():", getThirtyDaysAgo());
+    const payments = await PaymentModel.find({
+      reader: (<any>req).user._id,
+      author: author._id,
+      createdAt: { $gte: getThirtyDaysAgo() },
+    });
+    console.log("payments:", payments);
+
+    if (payments.length > 0) {
+      return res.status(200).send({ paid: true });
+    }
+    return res.status(200).send({ paid: false });
   } catch (err) {
     handleError(err);
   }
