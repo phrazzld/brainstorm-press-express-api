@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 import { LndNodeModel } from "../models/lnd-node";
 import { PaymentModel } from "../models/payment";
 import { PostModel } from "../models/post";
-import { PostPaymentModel } from "../models/post-payment";
 import { RefreshTokenModel } from "../models/refresh-token";
+import { SubscriptionModel } from "../models/subscription";
 import { UserModel } from "../models/user";
 import nodeManager from "../node-manager";
 import {
@@ -209,7 +209,8 @@ export const deleteUser = async (req: Request, res: Response) => {
     if (user.node) {
       await LndNodeModel.deleteOne({ _id: user.node }).exec();
     }
-    await PostPaymentModel.deleteMany({ userId: user._id }).exec();
+    await PaymentModel.deleteMany({ reader: user._id }).exec();
+    await SubscriptionModel.deleteMany({ reader: user._id }).exec();
     if (user.refreshToken) {
       await RefreshTokenModel.deleteOne({ _id: user.refreshToken }).exec();
     }

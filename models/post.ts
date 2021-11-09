@@ -8,15 +8,20 @@ export interface Post extends Document {
   user: Schema.Types.ObjectId;
   paginate: () => void;
   premium: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const PostSchema: Schema = new Schema<Post>({
-  title: { type: String, required: true },
-  content: { type: String, required: true },
-  published: { type: Boolean, required: true, default: false },
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  premium: { type: Boolean, required: true, default: false },
-});
+const PostSchema: Schema = new Schema<Post>(
+  {
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    published: { type: Boolean, required: true, default: false },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    premium: { type: Boolean, required: true, default: false },
+  },
+  { timestamps: true }
+);
 
 PostSchema.plugin(mongoosePaginate);
 
