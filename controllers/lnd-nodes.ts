@@ -4,10 +4,7 @@ import { UserModel } from "../models/user";
 import nodeManager from "../node-manager";
 import { handleError } from "../routes/utils";
 
-// POST /api/connect
-// Connect to an LndNode
 export const connectNode = async (req: Request, res: Response) => {
-  console.debug("--- connect ---");
   try {
     const { host, cert, macaroon } = req.body;
     const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
@@ -29,9 +26,7 @@ export const connectNode = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE /api/node
 export const deleteNode = async (req: Request, res: Response) => {
-  console.debug("--- deleteNode ---");
   const token = req.get("authorization");
   if (!token) {
     throw new Error("You must authorize this request with your node's token.");
@@ -45,9 +40,7 @@ export const deleteNode = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/node/status
 export const getNodeStatus = async (req: Request, res: Response) => {
-  console.debug("--- getNodeStatus ---");
   const id = req.params.id;
   if (!id) {
     throw new Error("Cannot get status of node without id.");
@@ -64,11 +57,8 @@ export const getNodeStatus = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/node/info
-// Get info from an LndNode
 // TODO: Refactor to return public info (i.e. connection status) unless called by node owner
 export const getNode = async (req: Request, res: Response) => {
-  console.debug("--- getInfo ---");
   const token = req.get("authorization");
   if (!token) {
     throw new Error("Your node is not connected.");

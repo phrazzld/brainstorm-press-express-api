@@ -4,7 +4,6 @@ import { RefreshTokenModel } from "../models/refresh-token";
 import { generateAccessToken, handleError } from "../routes/utils";
 
 export const deleteRefreshToken = async (req: Request, res: Response) => {
-  console.debug("--- deleteRefreshToken ---");
   try {
     await RefreshTokenModel.deleteOne({ token: req.cookies.refreshToken });
     res.clearCookie("refreshToken");
@@ -15,7 +14,6 @@ export const deleteRefreshToken = async (req: Request, res: Response) => {
 };
 
 export const createAccessToken = async (req: Request, res: Response) => {
-  console.debug("--- createAccessToken ---");
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     return res
@@ -38,9 +36,7 @@ export const createAccessToken = async (req: Request, res: Response) => {
         console.error(err);
         return res.status(403).json("Could not verify refresh token.");
       }
-      console.log("jwt.verify callback, user:", user);
       const accessToken = generateAccessToken(user);
-      console.log("new access token:", accessToken);
       return res.status(200).json(accessToken);
     }
   );

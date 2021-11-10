@@ -7,12 +7,11 @@ import { SubscriptionModel } from "../models/subscription";
 import { UserModel } from "../models/user";
 import nodeManager from "../node-manager";
 import { handleError, PUBLIC_USER_INFO } from "../routes/utils";
+import { getThirtyDaysAgo } from "../utils";
 
 const POSTS_LIMIT = 5;
 
-// GET /api/posts
 export const getPosts = async (req: Request, res: Response) => {
-  console.debug("--- getPosts ---");
   const page: number = Number(req.query.page);
   const free = req.query.free;
   const search = req.query.search;
@@ -37,10 +36,7 @@ export const getPosts = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/users/:id/posts
-// Get all posts written by a user
 export const getUserPosts = async (req: Request, res: Response) => {
-  console.debug("--- getUserPosts ---");
   const page: number = Number(req.query.page);
   const free = req.query.free;
   const search = req.query.search;
@@ -72,10 +68,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/drafts
-// Get all of your unpublished posts
 export const getDraftPosts = async (req: Request, res: Response) => {
-  console.debug("--- getDraftPosts ---");
   const page: number = Number(req.query.page);
 
   try {
@@ -105,7 +98,6 @@ export const getPostsFromSubscriptions = async (
   req: Request,
   res: Response
 ) => {
-  console.debug("--- getPostsFromSubscriptions ---");
   const page: number = Number(req.query.page);
 
   try {
@@ -131,9 +123,7 @@ export const getPostsFromSubscriptions = async (
   }
 };
 
-// GET /api/posts/:id
 export const getPost = async (req: Request, res: Response) => {
-  console.debug("--- getPost ---");
   try {
     const post = await PostModel.findById(req.params.id)
       .populate("user", "_id username blog node")
@@ -147,9 +137,7 @@ export const getPost = async (req: Request, res: Response) => {
   }
 };
 
-// PUT /api/posts/:id
 export const updatePost = async (req: Request, res: Response) => {
-  console.debug("--- updatePost ---");
   try {
     const post = await PostModel.findOneAndUpdate(
       { _id: req.params.id },
@@ -161,9 +149,7 @@ export const updatePost = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/posts
 export const createPost = async (req: Request, res: Response) => {
-  console.debug("--- createPost ---");
   try {
     // TODO: verify we can remove _.assign call
     _.assign(req.body, { user: (<any>req).user._id });
@@ -175,9 +161,7 @@ export const createPost = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE /api/posts/:id
 export const deletePost = async (req: Request, res: Response) => {
-  console.debug("--- deletePost ---");
   const { id } = req.params;
   try {
     await PostModel.deleteOne({ _id: id }).exec();
@@ -187,16 +171,7 @@ export const deletePost = async (req: Request, res: Response) => {
   }
 };
 
-// Get date for thirty days ago
-const getThirtyDaysAgo = () => {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  return thirtyDaysAgo;
-};
-
-// POST /api/posts/:id/invoice
 export const postInvoice = async (req: Request, res: Response) => {
-  console.debug("--- postInvoice ---");
   const { id } = req.params;
 
   // Find the post

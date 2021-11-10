@@ -54,7 +54,7 @@ export const seedDb = async (): Promise<void> => {
   const postCount = await PostModel.count();
 
   if (userCount === 0 && postCount === 0) {
-    console.debug("Seeding database...");
+    console.log("Seeding database...");
     // Create some users
     const alicePw = await bcrypt.hash("alice", 10);
     const alice = await UserModel.create({
@@ -104,8 +104,8 @@ export const seedDb = async (): Promise<void> => {
         premium: Math.random() < 0.4 ? true : false,
       });
     }
-    console.debug("Finished seeding database.");
+    console.log("Finished seeding database.");
   } else {
-    console.debug("Database is not empty. Skipping seeding.");
+    console.log("Database is not empty. Skipping seeding.");
   }
 };

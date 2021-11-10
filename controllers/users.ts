@@ -13,15 +13,9 @@ import {
   handleError,
   PUBLIC_USER_INFO,
 } from "../routes/utils";
-
-// Get date for thirty days ago
-const getThirtyDaysAgo = () => {
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  return thirtyDaysAgo;
-};
+import { getThirtyDaysAgo } from "../utils";
 
 const generateRefreshToken = async (user: any): Promise<string> => {
-  console.debug("--- generateRefreshToken ---");
   const refreshToken = jwt.sign(
     { _id: user._id, username: user.username },
     process.env.REFRESH_TOKEN_SECRET as string
@@ -33,7 +27,6 @@ const generateRefreshToken = async (user: any): Promise<string> => {
 };
 
 export const createUser = async (req: Request, res: Response) => {
-  console.debug("--- createUser ---");
   try {
     // Get user input
     const { username, email, blog, password } = req.body;
@@ -73,15 +66,12 @@ export const createUser = async (req: Request, res: Response) => {
       blog,
       password: encryptedPassword,
     });
-    console.debug("newUser:", newUser);
 
     // Create access token
     const accessToken = generateAccessToken(newUser);
-    console.debug("accessToken:", accessToken);
 
     // Create refresh token
     const refreshToken = await generateRefreshToken(newUser);
-    console.debug("refreshToken:", refreshToken);
 
     // Add the refresh token to the response cookie
     res.cookie("refreshToken", refreshToken, {
@@ -101,7 +91,6 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-  console.debug("--- updateUser ---");
   const { email, blog, subscriptionPrice, btcAddress } = req.body;
 
   try {
@@ -122,7 +111,6 @@ export const updateUser = async (req: Request, res: Response) => {
 };
 
 export const getCurrentUser = async (req: Request, res: Response) => {
-  console.debug("--- getCurrentUser ---");
   try {
     const user = await UserModel.findOne({ _id: (<any>req).user._id })
       .populate("node")
@@ -135,9 +123,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 };
 
 export const getUser = async (req: Request, res: Response) => {
-  console.debug("--- getUser ---");
   try {
-    console.log("req.params:", req.params);
     const { username } = req.params;
     const user = await UserModel.findOne({ username: username })
       .select(PUBLIC_USER_INFO)
@@ -149,7 +135,6 @@ export const getUser = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  console.debug("--- login ---");
   try {
     // Get user input
     const { email, password } = req.body;
@@ -161,16 +146,13 @@ export const login = async (req: Request, res: Response) => {
 
     // Find user
     const user = await UserModel.findOne({ email }).populate("node").exec();
-    console.debug("user:", user);
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // Create access token
       const accessToken = generateAccessToken(user);
-      console.debug("accessToken:", accessToken);
 
       // Create refresh token
       const refreshToken = await generateRefreshToken(user);
-      console.log("refreshToken:", refreshToken);
 
       // Add the refresh token to the response cookie
       res.cookie("refreshToken", refreshToken, {
@@ -192,7 +174,6 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  console.debug("--- deleteUser ---");
   const { id } = req.params;
   if (!id) {
     throw new Error("Cannot find user to delete.");
@@ -226,7 +207,6 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 // Get payments made by reader to author
 export const getPaymentsToUser = async (req: Request, res: Response) => {
-  console.debug("--- getPaymentsToUser ---");
   try {
     const { id } = req.params;
     const author = await UserModel.findById(id).exec();
@@ -246,7 +226,6 @@ export const getPaymentsToUser = async (req: Request, res: Response) => {
 
 // Log payment to user
 export const logPayment = async (req: Request, res: Response) => {
-  console.debug("--- users::logPayment ---");
   const { id } = req.params;
   const { hash } = req.body;
 
@@ -298,7 +277,6 @@ export const logPayment = async (req: Request, res: Response) => {
 
 // Check whether reader has paid author
 export const hasPaidAuthor = async (req: Request, res: Response) => {
-  console.debug("--- users::hasPaidAuthor ---");
   const { id } = req.params;
 
   try {
@@ -307,13 +285,11 @@ export const hasPaidAuthor = async (req: Request, res: Response) => {
       throw new Error("Cannot find author to check payment for.");
     }
 
-    console.log("getThirtyDaysAgo():", getThirtyDaysAgo());
     const payments = await PaymentModel.find({
       reader: (<any>req).user._id,
       author: author._id,
       createdAt: { $gte: getThirtyDaysAgo() },
     });
-    console.log("payments:", payments);
 
     if (payments.length > 0) {
       return res.status(200).send({ paid: true });

@@ -7,7 +7,6 @@ import { handleError } from "../routes/utils";
 import { sendEmail } from "../send-email";
 
 export const sendResetPasswordEmail = async (req: Request, res: Response) => {
-  console.debug("--- sendResetPasswordEmail ---");
   try {
     const { email } = req.body;
     if (!email) {
@@ -45,7 +44,6 @@ export const sendResetPasswordEmail = async (req: Request, res: Response) => {
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
-  console.debug("--- resetPassword ---");
   try {
     const { userId, token } = req.params;
     const { password } = req.body;
