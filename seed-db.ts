@@ -101,7 +101,7 @@ export const seedDb = async (): Promise<void> => {
         content: generateContent(),
         published: Math.random() < 0.3 ? true : false,
         user: user._id,
-        premium: Math.random() < 0.4 ? true : false,
+        premium: i % 2 === 0 ? true : false,
       });
     }
     console.log("Finished seeding database.");
