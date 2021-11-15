@@ -92,6 +92,15 @@ export const seedDb = async (): Promise<void> => {
 
     const users = [alice, bob, carol, dave];
 
+    // Create test post for testing search
+    PostModel.create({
+      title: "Buried Treasure",
+      content: generateContent(),
+      published: true,
+      user: alice._id,
+      premium: true,
+    });
+
     // Create some posts
     for (let i = 0; i < 100; i++) {
       const user = _.sample(users) || alice;
