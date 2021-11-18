@@ -12,11 +12,15 @@ import { getThirtyDaysAgo } from "../utils";
 const POSTS_LIMIT = 5;
 
 export const getPosts = async (req: Request, res: Response) => {
-  const page: number = Number(req.query.page);
+  let page: number = Number(req.query.page);
   const free = req.query.free;
   const search = req.query.search;
 
   let filter = { published: true };
+  // If page is not a number, set it to 1
+  if (isNaN(page)) {
+    page = 1;
+  }
   if (free) {
     _.assign(filter, { premium: 0 });
   }
