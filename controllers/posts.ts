@@ -30,7 +30,7 @@ export const getPosts = async (req: Request, res: Response) => {
       limit: POSTS_LIMIT,
       populate: [{ path: "user", select: PUBLIC_USER_INFO }],
     });
-    return res.send(posts);
+    return res.status(200).send(posts);
   } catch (err) {
     handleError(err);
   }
