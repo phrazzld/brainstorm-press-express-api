@@ -161,6 +161,9 @@ export const createPost = async (req: Request, res: Response) => {
     await post.save();
     return res.status(201).send(post);
   } catch (err) {
+    if (err instanceof Error) {
+      return res.status(400).send(err.message);
+    }
     handleError(err);
   }
 };
