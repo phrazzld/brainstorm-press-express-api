@@ -1,14 +1,15 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import request from "supertest";
-import app from "./app";
-import { UserModel } from "./models/user";
-import { generateAccessToken } from "./routes/utils";
-import { seedDb } from "./seed-db";
+import app from "../app";
+import { PostModel } from "../models/post";
+import { UserModel } from "../models/user";
+import { seedDb } from "../seed-db";
+import { generateAccessToken } from "./utils";
 
 require("dotenv").config();
 
-describe("/api", () => {
+describe("/api/posts", () => {
   let mongoServer: any;
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -17,11 +18,13 @@ describe("/api", () => {
   });
 
   afterAll(async () => {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
     await mongoose.disconnect();
     await mongoServer.stop();
   });
 
-  describe("/posts", () => {
+  describe("/", () => {
     describe("GET", () => {
       describe("with page param", () => {
         describe("present", () => {
@@ -55,6 +58,29 @@ describe("/api", () => {
     });
 
     describe("POST", () => {
+      describe("without an access token", () => {
+        it("should 403", async () => {
+          const response = await request(app).post("/api/posts").send({
+            title: "Test Post",
+            content: "test content whadup",
+          });
+          expect(response.status).toBe(403);
+        });
+      });
+
+      describe("with an invalid access token", () => {
+        it("should 401", async () => {
+          const response = await request(app)
+            .post("/api/posts")
+            .set("Authorization", `Bearer invalid`)
+            .send({
+              title: "Test Post",
+              content: "test content whadup",
+            });
+          expect(response.status).toBe(401);
+        });
+      });
+
       describe("with access token", () => {
         describe("with valid params", () => {
           it("should 201", async () => {
@@ -85,13 +111,14 @@ describe("/api", () => {
           });
         });
       });
+    });
+  });
 
+  describe("/subscriptions", () => {
+    describe("GET", () => {
       describe("without an access token", () => {
         it("should 403", async () => {
-          const response = await request(app).post("/api/posts").send({
-            title: "Test Post",
-            content: "test content whadup",
-          });
+          const response = await request(app).get("/api/posts/subscriptions");
           expect(response.status).toBe(403);
         });
       });
@@ -99,14 +126,71 @@ describe("/api", () => {
       describe("with an invalid access token", () => {
         it("should 401", async () => {
           const response = await request(app)
-            .post("/api/posts")
-            .set("Authorization", `Bearer invalid`)
-            .send({
-              title: "Test Post",
-              content: "test content whadup",
-            });
+            .get("/api/posts/subscriptions")
+            .set("Authorization", `Bearer invalid`);
           expect(response.status).toBe(401);
         });
+      });
+
+      describe("with an access token", () => {
+        test.todo("should 200");
+      });
+    });
+  });
+
+  describe("/:id", () => {
+    describe("GET", () => {
+      describe("without an access token", () => {
+        it("should 200", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app).get(`/api/posts/${post._id}`);
+          expect(response.status).toBe(200);
+        });
+      });
+
+      describe("with an invalid access token", () => {
+        it("should 200", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app)
+            .get(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer invalid`);
+          expect(response.status).toBe(200);
+        });
+      });
+
+      describe("with an access token", () => {
+        it("should 200", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app).get(`/api/posts/${post._id}`);
+          expect(response.status).toBe(200);
+        });
+      });
+    });
+
+    describe("PUT", () => {});
+
+    describe("DELETE", () => {});
+  });
+
+  describe("/:id/invoice", () => {
+    describe("POST", () => {});
+  });
+
+  describe("/users", () => {
+    describe("/:username", () => {
+      describe("GET", () => {});
+
+      describe("/drafts", () => {
+        describe("GET", () => {});
       });
     });
   });
