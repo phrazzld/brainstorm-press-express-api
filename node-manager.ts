@@ -45,11 +45,6 @@ class NodeManager extends EventEmitter {
 
       await rpc.channelBalance();
 
-      const msg = Buffer.from("authorization test").toString("base64");
-      const { signature } = await rpc.signMessage({ msg });
-
-      await rpc.verifyMessage({ msg, signature });
-
       const { rHash } = await rpc.addInvoice({ value: "1" });
 
       await rpc.lookupInvoice({ rHash });

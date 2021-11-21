@@ -130,7 +130,7 @@ export const getPostsFromSubscriptions = async (
 export const getPost = async (req: Request, res: Response) => {
   try {
     const post = await PostModel.findById(req.params.id)
-      .populate("user", "_id username blog node")
+      .populate("user", "_id username blog node subscriptionPrice")
       .exec();
     if (!post) {
       throw new Error("No post found.");
