@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import faker from "faker";
 import * as _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { LndNodeModel } from "./models/lnd-node";
+import { LnNodeModel } from "./models/ln-node";
 import { PostModel } from "./models/post";
 import { UserModel } from "./models/user";
 import nodeManager from "./node-manager";
@@ -108,13 +108,13 @@ export const seedDb = async (): Promise<void> => {
 
     const users = [alice, bob, carol, dave, cypress];
 
-    // Create LND node for Alice
+    // Create LN node for Alice
     const { token, pubkey } = await nodeManager.connect(
       ALICE_HOST,
       ALICE_CERT,
       ALICE_MACAROON
     );
-    const node = new LndNodeModel({
+    const node = new LnNodeModel({
       host: ALICE_HOST,
       cert: ALICE_CERT,
       macaroon: ALICE_MACAROON,

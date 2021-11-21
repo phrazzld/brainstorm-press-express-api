@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-export interface LndNode {
+export interface LnNode {
   token: string;
   host: string;
   cert: string;
@@ -10,7 +10,7 @@ export interface LndNode {
   updatedAt: Date;
 }
 
-const LndNodeSchema = new Schema<LndNode>(
+const LnNodeSchema = new Schema<LnNode>(
   {
     token: { type: String, required: true },
     host: { type: String, required: true },
@@ -21,4 +21,4 @@ const LndNodeSchema = new Schema<LndNode>(
   { timestamps: true }
 );
 
-export const LndNodeModel = model("LndNode", LndNodeSchema);
+export const LnNodeModel = model("LnNode", LnNodeSchema);

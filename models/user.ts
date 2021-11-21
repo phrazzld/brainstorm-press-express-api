@@ -19,7 +19,7 @@ const UserSchema = new Schema<User>(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     blog: { type: String, required: true },
-    node: { type: Schema.Types.ObjectId, ref: "LndNode" },
+    node: { type: Schema.Types.ObjectId, ref: "LnNode" },
     btcAddress: { type: String },
     refreshToken: { type: String },
     subscriptionPrice: { type: Number, required: true, default: 0 },

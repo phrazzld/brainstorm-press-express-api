@@ -4,7 +4,7 @@ import {
   deleteNode,
   getNode,
   getNodeStatus,
-} from "../controllers/lnd-nodes";
+} from "../controllers/ln-nodes";
 import { verifyAccessToken } from "./utils";
 
 const router = express.Router();

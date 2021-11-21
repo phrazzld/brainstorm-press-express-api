@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as _ from "lodash";
-import { LndNodeModel } from "../models/lnd-node";
+import { LnNodeModel } from "../models/ln-node";
 import { PaymentModel } from "../models/payment";
 import { PostModel } from "../models/post";
 import { SubscriptionModel } from "../models/subscription";
@@ -222,7 +222,7 @@ export const postInvoice = async (req: Request, res: Response) => {
     throw new Error("Author has no node connected.");
   }
 
-  const node = await LndNodeModel.findById(user.node).exec();
+  const node = await LnNodeModel.findById(user.node).exec();
   if (!node) {
     throw new Error("Node not found for this post.");
   }

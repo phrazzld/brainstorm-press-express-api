@@ -2,7 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import request from "supertest";
 import app from "../app";
-import { LndNodeModel } from "../models/lnd-node";
+import { LnNodeModel } from "../models/ln-node";
 import { seedDb } from "../seed-db";
 
 require("dotenv").config();
@@ -70,7 +70,7 @@ describe("/api/nodes", () => {
     describe("GET", () => {
       describe("without an access token", () => {
         it("should 200", async () => {
-          const node = await LndNodeModel.findOne().exec();
+          const node = await LnNodeModel.findOne().exec();
           if (!node) {
             throw new Error("No node found");
           }

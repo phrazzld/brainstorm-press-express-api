@@ -1,7 +1,7 @@
 import createLnRpc, { LnRpc } from "@radar/lnrpc";
 import { EventEmitter } from "events";
 import { v4 as uuidv4 } from "uuid";
-import { LndNode } from "./models/lnd-node";
+import { LnNode } from "./models/ln-node";
 
 export const NodeEvents = {
   invoicePaid: "invoice-paid",
@@ -11,18 +11,18 @@ class NodeManager extends EventEmitter {
   // A mapping of token to gRPC connection.
   // This is an optimization to avoid calling `createLnRpc` on every request.
   // Instead, the object is kept in memory for the lifetime of the server.
-  private _lndNodes: Record<string, LnRpc> = {};
+  private _lnNodes: Record<string, LnRpc> = {};
 
-  // Retrieves the in-memory connection to an LND node
+  // Retrieves the in-memory connection to an LN node
   getRpc = (token: string): LnRpc => {
-    if (!this._lndNodes[token]) {
+    if (!this._lnNodes[token]) {
       throw new Error("Not authorized. You must login first.");
     }
 
-    return this._lndNodes[token];
+    return this._lnNodes[token];
   };
 
-  // Tests the LND connection by validating that we can get the node's info
+  // Tests the LN connection by validating that we can get the node's info
   connect = async (
     host: string,
     cert: string,
@@ -49,34 +49,34 @@ class NodeManager extends EventEmitter {
 
       await rpc.lookupInvoice({ rHash });
 
-      // Listen for payments from LND
+      // Listen for payments from LN
       this.listenForPayments(rpc, pubkey);
 
       // Store this RPC connection in the in-memory list
-      this._lndNodes[token] = rpc;
+      this._lnNodes[token] = rpc;
 
       // Return this node's token for future requests
       return { token, pubkey };
     } catch (err) {
       // Remove the connection from the cache since it is not valid
-      if (this._lndNodes[token]) {
-        delete this._lndNodes[token];
+      if (this._lnNodes[token]) {
+        delete this._lnNodes[token];
       }
       throw err;
     }
   };
 
   // Reconnect to all persisted nodes to cache the LnRpc objects
-  reconnectNodes = async (nodes: LndNode[]) => {
+  reconnectNodes = async (nodes: LnNode[]) => {
     for (const node of nodes) {
       const { host, cert, macaroon, token } = node;
       try {
-        console.log(`Reconnecting to LND node ${host} for token ${token}...`);
+        console.log(`Reconnecting to LN node ${host} for token ${token}...`);
         await this.connect(host, cert, macaroon, token);
-        console.log(`Connected to LND node ${host} with token ${token}.`);
+        console.log(`Connected to LN node ${host} with token ${token}.`);
       } catch (err) {
         console.error(
-          `Failed to reconnect to LND node ${host} with token ${token}.`
+          `Failed to reconnect to LN node ${host} with token ${token}.`
         );
       }
     }

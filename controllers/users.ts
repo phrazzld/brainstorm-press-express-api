@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { LndNodeModel } from "../models/lnd-node";
+import { LnNodeModel } from "../models/ln-node";
 import { PaymentModel } from "../models/payment";
 import { PostModel } from "../models/post";
 import { RefreshTokenModel } from "../models/refresh-token";
@@ -188,7 +188,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     // Delete associated data
     await PostModel.deleteMany({ user: user._id }).exec();
     if (user.node) {
-      await LndNodeModel.deleteOne({ _id: user.node }).exec();
+      await LnNodeModel.deleteOne({ _id: user.node }).exec();
     }
     await PaymentModel.deleteMany({ reader: user._id }).exec();
     await SubscriptionModel.deleteMany({ reader: user._id }).exec();
@@ -240,7 +240,7 @@ export const logPayment = async (req: Request, res: Response) => {
     }
 
     // Get author's node
-    const node = await LndNodeModel.findById(user.node).exec();
+    const node = await LnNodeModel.findById(user.node).exec();
     if (!node) {
       throw new Error("Cannot find author's node.");
     }

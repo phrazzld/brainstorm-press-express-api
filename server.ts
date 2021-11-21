@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import app from "./app";
-import { LndNodeModel } from "./models/lnd-node";
+import { LnNodeModel } from "./models/ln-node";
 import nodeManager from "./node-manager";
 import { seedDb } from "./seed-db";
 
@@ -30,6 +30,6 @@ db.once("open", () => {
 app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}.`);
 
-  const allNodes = await LndNodeModel.find({});
+  const allNodes = await LnNodeModel.find({});
   await nodeManager.reconnectNodes(allNodes);
 });

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { LndNodeModel } from "../models/lnd-node";
+import { LnNodeModel } from "../models/ln-node";
 import { UserModel } from "../models/user";
 import nodeManager from "../node-manager";
 import { handleError } from "../routes/utils";
@@ -8,7 +8,7 @@ export const connectNode = async (req: Request, res: Response) => {
   try {
     const { host, cert, macaroon } = req.body;
     const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
-    const node = new LndNodeModel({
+    const node = new LnNodeModel({
       host,
       cert,
       macaroon,
@@ -33,7 +33,7 @@ export const deleteNode = async (req: Request, res: Response) => {
   }
 
   try {
-    await LndNodeModel.deleteOne({ token }).exec();
+    await LnNodeModel.deleteOne({ token }).exec();
     return res.status(204).send("Node deleted successfully.");
   } catch (err) {
     handleError(err);
@@ -47,7 +47,7 @@ export const getNodeStatus = async (req: Request, res: Response) => {
   }
 
   try {
-    const node = await LndNodeModel.findOne({ _id: id }).exec();
+    const node = await LnNodeModel.findOne({ _id: id }).exec();
     if (!node) {
       return res.status(200).send({ status: "Not found." });
     }
@@ -65,7 +65,7 @@ export const getNode = async (req: Request, res: Response) => {
   }
 
   // Find the node making the request
-  const node = await LndNodeModel.findOne({ token }).exec();
+  const node = await LnNodeModel.findOne({ token }).exec();
   if (!node) {
     throw new Error("Node not found with this token.");
   }

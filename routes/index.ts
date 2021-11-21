@@ -1,5 +1,5 @@
 import express from "express";
-import nodesRouter from "./lnd-nodes";
+import nodesRouter from "./ln-nodes";
 import postsRouter from "./posts";
 import resetPasswordRouter from "./reset-password";
 import subsRouter from "./subscriptions";
