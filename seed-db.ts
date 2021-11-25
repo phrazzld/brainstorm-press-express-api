@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import { LnNodeModel } from "./models/ln-node";
 import { PostModel } from "./models/post";
 import { UserModel } from "./models/user";
-import nodeManager from "./node-manager";
 
 type DraftJsBlock = {
   key: string;
@@ -55,7 +54,7 @@ const generateContent = (): string => {
   return JSON.stringify(draftJsContent);
 };
 
-export const seedDb = async (): Promise<void> => {
+export const seedDb = async (connectNode: any): Promise<void> => {
   // If database is unpopulated, seed it
   // Otherwise, skip
   const userCount = await UserModel.count();
@@ -109,7 +108,7 @@ export const seedDb = async (): Promise<void> => {
     const users = [alice, bob, carol, dave, cypress];
 
     // Create LN node for Alice
-    const { token, pubkey } = await nodeManager.connect(
+    const { token, pubkey } = await connectNode(
       ALICE_HOST,
       ALICE_CERT,
       ALICE_MACAROON

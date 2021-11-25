@@ -2,10 +2,9 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import request from "supertest";
 import app from "../app";
-import { PostModel } from "../models/post";
 import { UserModel } from "../models/user";
 import { seedDb } from "../seed-db";
-import { generateAccessToken } from "./utils";
+import { mockConnect } from "../utils";
 
 require("dotenv").config();
 
@@ -14,7 +13,7 @@ describe("/api/reset-password", () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
-    await seedDb();
+    await seedDb(mockConnect);
   });
 
   afterAll(async () => {

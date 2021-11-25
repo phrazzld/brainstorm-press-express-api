@@ -4,6 +4,7 @@ import request from "supertest";
 import app from "../app";
 import { LnNodeModel } from "../models/ln-node";
 import { seedDb } from "../seed-db";
+import { mockConnect } from "../utils";
 
 require("dotenv").config();
 
@@ -12,7 +13,7 @@ describe("/api/nodes", () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
-    await seedDb();
+    await seedDb(mockConnect);
   });
 
   afterAll(async () => {

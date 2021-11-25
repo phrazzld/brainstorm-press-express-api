@@ -22,7 +22,7 @@ db.once("open", () => {
   // If the database is empty, and we're in a development environment, seed it
   console.log(`Environment: ${process.env.NODE_ENV}.`);
   if (process.env.NODE_ENV === "development") {
-    seedDb();
+    seedDb(nodeManager.connect);
   }
 });
 

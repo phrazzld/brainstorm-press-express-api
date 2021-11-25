@@ -5,6 +5,7 @@ import app from "../app";
 import { PostModel } from "../models/post";
 import { UserModel } from "../models/user";
 import { seedDb } from "../seed-db";
+import { mockConnect } from "../utils";
 import { generateAccessToken } from "./utils";
 
 require("dotenv").config();
@@ -14,7 +15,7 @@ describe("/api/posts", () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
-    await seedDb();
+    await seedDb(mockConnect);
   });
 
   afterAll(async () => {

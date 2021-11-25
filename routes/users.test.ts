@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 import app from "../app";
 import { seedDb } from "../seed-db";
+import { mockConnect } from "../utils";
 
 require("dotenv").config();
 
@@ -11,7 +12,7 @@ describe("/api/users", () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
-    await seedDb();
+    await seedDb(mockConnect);
   });
 
   afterAll(async () => {
