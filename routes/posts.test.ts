@@ -2,7 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import request from "supertest";
 import app from "../app";
-import { PostModel } from "../models/post";
+import { Post, PostModel } from "../models/post";
 import { UserModel } from "../models/user";
 import { seedDb } from "../seed-db";
 import { mockConnect } from "../utils";
@@ -53,9 +53,78 @@ describe("/api/posts", () => {
         });
       });
 
-      describe("with free param", () => {});
+      describe("with free param", () => {
+        describe("present", () => {
+          it("should 200", async () => {
+            const response = await request(app).get("/api/posts?free=true");
+            expect(response.status).toBe(200);
+          });
 
-      describe("with search param", () => {});
+          it("should return only free posts", async () => {
+            const response = await request(app).get("/api/posts?free=true");
+            expect(response.body.docs.every((post: Post) => post.premium)).toBe(
+              false
+            );
+          });
+        });
+
+        describe("missing", () => {
+          it("should 200", async () => {
+            const response = await request(app).get("/api/posts");
+            expect(response.status).toBe(200);
+          });
+
+          it("should return the first page of posts, free and premium mixed", async () => {
+            const response = await request(app).get("/api/posts");
+            expect(response.body.page).toBe(1);
+            expect(response.body.docs.some((post: Post) => !post.premium)).toBe(
+              true
+            );
+            expect(response.body.docs.some((post: any) => post.premium)).toBe(
+              true
+            );
+          });
+        });
+      });
+
+      describe("with search param", () => {
+        describe("present", () => {
+          it("should 200", async () => {
+            const response = await request(app).get(
+              "/api/posts?search=treasure"
+            );
+            expect(response.status).toBe(200);
+          });
+
+          it("should return only posts matching the search", async () => {
+            const response = await request(app).get(
+              "/api/posts?search=treasure"
+            );
+            expect(
+              response.body.docs.every((post: Post) =>
+                post.title.toLowerCase().includes("treasure")
+              )
+            ).toBe(true);
+          });
+        });
+
+        describe("missing", () => {
+          it("should 200", async () => {
+            const response = await request(app).get("/api/posts");
+            expect(response.status).toBe(200);
+          });
+
+          it("should return the first page of posts", async () => {
+            const response = await request(app).get("/api/posts");
+            expect(response.body.page).toBe(1);
+            expect(
+              response.body.docs.some(
+                (post: Post) => !post.title.includes("treasure")
+              )
+            ).toBe(true);
+          });
+        });
+      });
     });
 
     describe("POST", () => {
