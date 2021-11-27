@@ -246,7 +246,20 @@ describe("/api/posts", () => {
       });
     });
 
-    describe("PUT", () => {});
+    describe("PUT", () => {
+      describe("without an access token", () => {
+        it("should 403", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app)
+            .put(`/api/posts/${post._id}`)
+            .send({});
+          expect(response.status).toBe(403);
+        });
+      });
+    });
 
     describe("DELETE", () => {});
   });

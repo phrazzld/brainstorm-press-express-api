@@ -8,6 +8,14 @@ import { mockConnect } from "../utils";
 
 require("dotenv").config();
 
+jest.mock("nodemailer", () => ({
+  createTransport: jest.fn().mockReturnValue({
+    sendMail: jest
+      .fn()
+      .mockReturnValue((mailoptions: any, callback: any) => {}),
+  }),
+}));
+
 describe("/api/reset-password", () => {
   let mongoServer: any;
   beforeAll(async () => {

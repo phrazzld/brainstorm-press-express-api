@@ -37,7 +37,7 @@ export const sendResetPasswordEmail = async (req: Request, res: Response) => {
     `;
     await sendEmail(user.email, "Password reset", message);
 
-    res.send({ message: "Password reset link emailed." });
+    res.status(200).send({ message: "Password reset link emailed." });
   } catch (err) {
     handleError(err);
   }
