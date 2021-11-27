@@ -1,7 +1,9 @@
+import crypto from "crypto";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import request from "supertest";
 import app from "../app";
+import { PasswordResetTokenModel } from "../models/password-reset-token";
 import { UserModel } from "../models/user";
 import { seedDb } from "../seed-db";
 import { mockConnect } from "../utils";
@@ -29,6 +31,10 @@ describe("/api/reset-password", () => {
     await mongoose.connection.close();
     await mongoose.disconnect();
     await mongoServer.stop();
+  });
+
+  beforeEach(async () => {
+    await PasswordResetTokenModel.deleteMany({});
   });
 
   describe("/", () => {
@@ -63,15 +69,52 @@ describe("/api/reset-password", () => {
 
   describe("/:userId/:token", () => {
     describe("POST", () => {
-      test.todo("should 400 if no user exists with the provided ID");
+      it("should 400 if no user exists with the provided ID", async () => {
+        const userId = new mongoose.Types.ObjectId();
+        const res = await request(app)
+          .post(`/api/reset-password/${userId}/12345`)
+          .send({ password: "12345" });
+        expect(res.status).toBe(400);
+      });
 
-      test.todo("should 400 if no password token is provided");
+      it("should 400 if no password token is provided", async () => {
+        const user = await UserModel.findOne({}).exec();
+        if (!user) {
+          throw new Error("No user found");
+        }
+        const passwordToken = "";
+        const res = await request(app)
+          .post("/api/reset-password/" + user._id + "/" + passwordToken + "/")
+          .send({ password: "12345" });
+        expect(res.status).toBe(404);
+      });
 
-      test.todo("should 400 if no password is provided");
+      it("should 400 if no password is provided", async () => {
+        const user = await UserModel.findOne({}).exec();
+        if (!user) {
+          throw new Error("No user found");
+        }
+        const res = await request(app)
+          .post("/api/reset-password/" + user._id + "/12345")
+          .send({});
+        expect(res.status).toBe(400);
+      });
 
-      test.todo(
-        "should 200 when valid userId, token, and password are provided"
-      );
+      it("should 200 when valid userId, token, and password are provided", async () => {
+        const user = await UserModel.findOne({ username: "Alice" }).exec();
+        if (!user) {
+          throw new Error("No user found");
+        }
+        const token = crypto.randomBytes(32).toString("hex");
+        await PasswordResetTokenModel.create({
+          userId: user._id,
+          token: token,
+        });
+        const res = await request(app)
+          .post("/api/reset-password/" + user._id + "/" + token)
+          .send({ password: "newpassword" });
+        expect(res.status).toBe(200);
+      });
     });
   });
 });

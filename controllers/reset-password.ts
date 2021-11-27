@@ -71,7 +71,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       token: token,
     }).exec();
 
-    res.send("Successfully reset password.");
+    res.status(200).send("Successfully reset password.");
   } catch (err) {
     handleError(err);
   }
