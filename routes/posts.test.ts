@@ -240,7 +240,10 @@ describe("/api/posts", () => {
           if (!post) {
             throw new Error("No post found");
           }
-          const response = await request(app).get(`/api/posts/${post._id}`);
+          const accessToken = generateAccessToken(post.user);
+          const response = await request(app)
+            .get(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer ${accessToken}`);
           expect(response.status).toBe(200);
         });
       });
@@ -259,13 +262,140 @@ describe("/api/posts", () => {
           expect(response.status).toBe(403);
         });
       });
+
+      describe("with an invalid access token", () => {
+        it("should 401", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app)
+            .put(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer invalid`)
+            .send({});
+          expect(response.status).toBe(401);
+        });
+      });
+
+      describe("with a valid access token", () => {
+        it("should 200", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const accessToken = generateAccessToken(post.user);
+          const response = await request(app)
+            .put(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({});
+          expect(response.status).toBe(200);
+        });
+
+        it("should update the post with the request body", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const accessToken = generateAccessToken(post.user);
+          const response = await request(app)
+            .put(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({
+              title: "Test Post",
+              content: "test content whadup",
+            });
+          expect(response.body.title).toBe("Test Post");
+          expect(response.body.content).toBe("test content whadup");
+        });
+      });
     });
 
-    describe("DELETE", () => {});
+    describe("DELETE", () => {
+      describe("without an access token", () => {
+        it("should 403", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app).delete(`/api/posts/${post._id}`);
+          expect(response.status).toBe(403);
+        });
+      });
+
+      describe("with an invalid access token", () => {
+        it("should 401", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app)
+            .delete(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer invalid`);
+          expect(response.status).toBe(401);
+        });
+      });
+
+      describe("with a valid access token", () => {
+        it("should 204", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const accessToken = generateAccessToken(post.user);
+          const response = await request(app)
+            .delete(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer ${accessToken}`);
+          expect(response.status).toBe(204);
+        });
+
+        it("should delete the post", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const accessToken = generateAccessToken(post.user);
+          const response = await request(app)
+            .delete(`/api/posts/${post._id}`)
+            .set("Authorization", `Bearer ${accessToken}`);
+          expect(response.status).toBe(204);
+          const postAfterDelete = await PostModel.findOne({
+            _id: post._id,
+          }).exec();
+          expect(postAfterDelete).toBe(null);
+        });
+      });
+    });
   });
 
   describe("/:id/invoice", () => {
-    describe("POST", () => {});
+    describe("POST", () => {
+      describe("without an access token", () => {
+        it("should 403", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app)
+            .post(`/api/posts/${post._id}/invoice`)
+            .send({});
+          expect(response.status).toBe(403);
+        });
+      });
+
+      describe("with an invalid access token", () => {
+        it("should 401", async () => {
+          const post = await PostModel.findOne().exec();
+          if (!post) {
+            throw new Error("No post found");
+          }
+          const response = await request(app)
+            .post(`/api/posts/${post._id}/invoice`)
+            .set("Authorization", `Bearer invalid`)
+            .send({});
+          expect(response.status).toBe(401);
+        });
+      });
+    });
   });
 
   describe("/users", () => {

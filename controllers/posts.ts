@@ -145,7 +145,8 @@ export const updatePost = async (req: Request, res: Response) => {
   try {
     const post = await PostModel.findOneAndUpdate(
       { _id: req.params.id },
-      req.body
+      req.body,
+      { new: true }
     ).exec();
     return res.status(200).send(post);
   } catch (err) {
