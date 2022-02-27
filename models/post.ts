@@ -6,7 +6,6 @@ export interface Post extends Document {
   content: string;
   published: boolean;
   user: Schema.Types.ObjectId;
-  //paginate: () => void;
   premium: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -29,4 +28,4 @@ PostSchema.index({ "$**": "text" });
 
 interface PostModel<T extends Document> extends PaginateModel<T> {}
 
-export const PostModel: PostModel<Post> = model<Post>("Post", PostSchema);
+export const PostModel = model<Post>("Post", PostSchema);
