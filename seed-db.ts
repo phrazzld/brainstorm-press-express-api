@@ -70,6 +70,7 @@ export const seedDb = async (connectNode: any): Promise<void> => {
       blog: "Awesome Stories",
       btcAddress: faker.finance.bitcoinAddress(),
       password: alicePw,
+      subscriptionPrice: 10000,
     });
 
     const bobPw = await bcrypt.hash("bob", 10);
@@ -86,6 +87,7 @@ export const seedDb = async (connectNode: any): Promise<void> => {
       email: "carol@aol.com",
       blog: "Cooking Tips and Tricks",
       password: carolPw,
+      subscriptionPrice: 5000,
     });
 
     const davePw = await bcrypt.hash("dave", 10);
@@ -95,6 +97,7 @@ export const seedDb = async (connectNode: any): Promise<void> => {
       blog: "Film Stuff",
       btcAddress: faker.finance.bitcoinAddress(),
       password: davePw,
+      subscriptionPrice: 1000,
     });
 
     const cypressPw = await bcrypt.hash("test-password", 10);
