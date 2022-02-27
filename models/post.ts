@@ -6,7 +6,7 @@ export interface Post extends Document {
   content: string;
   published: boolean;
   user: Schema.Types.ObjectId;
-  paginate: () => void;
+  //paginate: () => void;
   premium: boolean;
   createdAt: Date;
   updatedAt: Date;
