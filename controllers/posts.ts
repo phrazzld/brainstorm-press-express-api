@@ -196,11 +196,11 @@ export const postInvoice = async (req: Request, res: Response) => {
   }
 
   if (!user.subscriptionPrice) {
-    throw new Error("Authoring user has no subscription price.");
+    return res.status(400).send("No subscription price set for this author.");
   }
 
   if (user.subscriptionPrice === 0) {
-    throw new Error("Authoring user has a free subscription.");
+    return res.status(400).send("Author has a free subscription.");
   }
 
   // Throw an error if the user is already paying for this post
