@@ -12,7 +12,7 @@ const SocketEvents = {
 
 // Create Express server
 const { app } = expressWs(express());
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: process.env.BASE_URL }));
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
