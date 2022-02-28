@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import faker from "faker";
+import faker from "@faker-js/faker";
 import * as _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { LnNodeModel } from "./models/ln-node";

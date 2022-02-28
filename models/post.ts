@@ -27,6 +27,6 @@ PostSchema.plugin(mongoosePaginate);
 
 PostSchema.index({ "$**": "text" });
 
-//interface PostModel<T extends Document> extends PaginateModel<T> {}
+interface PostModel<T extends Document> extends PaginateModel<T> {}
 
-export const PostModel: PaginateModel<Post> = model<Post>("Post", PostSchema);
+export const PostModel: PaginateModel<Post> = model<Post>("Post", PostSchema) as PostModel<Post>;
