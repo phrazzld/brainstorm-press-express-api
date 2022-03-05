@@ -5,9 +5,8 @@
   "main": "server.ts",
   "scripts": {
     "start": "node dist/server.js",
-    "postinstall": "tsc",
     "dev": "ts-node-dev server.ts",
-    "build": "tsc --project ./",
+    "build": "tsc --project tsconfig.json",
     "test": "jest --forceExit"
   },
   "keywords": [],
