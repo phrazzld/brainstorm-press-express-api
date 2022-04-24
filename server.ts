@@ -6,8 +6,6 @@ import { seedDb } from "./seed-db";
 
 require("dotenv").config();
 
-const PORT: number = 4000;
-
 // Database setup
 // TODO: Differentiate between dev and prod
 const mongoUri: string = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -27,8 +25,8 @@ db.once("open", () => {
 });
 
 // Start server
-app.listen(PORT, async () => {
-  console.log(`Listening on port ${PORT}.`);
+app.listen(process.env.PORT || 4000, async () => {
+  console.log(`Listening on port ${process.env.PORT || 4000}.`);
 
   const allNodes = await LnNodeModel.find({});
   await nodeManager.reconnectNodes(allNodes);
