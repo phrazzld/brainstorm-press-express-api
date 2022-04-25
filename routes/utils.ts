@@ -19,7 +19,7 @@ export const generateAccessToken = (user: any): string => {
     { _id: user._id, username: user.username },
     process.env.ACCESS_TOKEN_SECRET as string,
     {
-      expiresIn: "15s",
+      expiresIn: "15m",
     }
   );
 };
