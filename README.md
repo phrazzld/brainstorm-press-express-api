@@ -12,6 +12,10 @@ Corresponding client code [here](https://github.com/phrazzld/brainstorm-press-cl
 
 `yarn test` will run unit and integration tests built with [Jest](https://jestjs.io/). They depend on a locally running Lightning Network, like [Polar](https://lightningpolar.com/).
 
+## Production
+
+The Brainstorm Press API is currently live and hosted on Heroku.
+
 ## Acknowledgements
 
 This project is largely based on the [Lightning Labs Builder's Guide](https://docs.lightning.engineering/lapps/guides). Huge shoutout to Lightning Labs.
