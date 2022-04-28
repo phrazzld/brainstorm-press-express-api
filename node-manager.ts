@@ -38,7 +38,8 @@ class NodeManager extends EventEmitter {
       console.debug("Creating an LN RPC...");
       const rpc = await createLnRpc({
         server: host,
-        cert: Buffer.from(cert, "hex").toString("utf-8"),
+        tls: false,
+        //cert: Buffer.from(cert, "hex").toString("utf-8"),
         macaroon,
       });
       console.debug("rpc:", rpc);
