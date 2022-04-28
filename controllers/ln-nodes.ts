@@ -5,9 +5,16 @@ import nodeManager from "../node-manager";
 import { handleError } from "../routes/utils";
 
 export const connectNode = async (req: Request, res: Response) => {
+  console.debug("Connecting to node...");
   try {
     const { host, cert, macaroon } = req.body;
+    console.debug("host:", host);
+    console.debug("cert:", cert);
+    console.debug("macaroon:", macaroon);
     const { token, pubkey } = await nodeManager.connect(host, cert, macaroon);
+    console.debug("token:", token);
+    console.debug("pubkey:", pubkey);
+
     const node = new LnNodeModel({
       host,
       cert,
@@ -15,6 +22,7 @@ export const connectNode = async (req: Request, res: Response) => {
       token,
       pubkey,
     });
+    console.debug("Ready to save node:", node);
     await node.save();
     await UserModel.findOneAndUpdate(
       { _id: (<any>req).user._id },

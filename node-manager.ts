@@ -29,16 +29,19 @@ class NodeManager extends EventEmitter {
     macaroon: string,
     prevToken?: string
   ) => {
-    // Generate a random token, without
+    console.debug("Connecting via nodeManager...");
+    // Generate a random token
     const token = prevToken || uuidv4().replace(/-/g, "");
 
     try {
       // Add the connection to the cache
+      console.debug("Creating an LN RPC...");
       const rpc = await createLnRpc({
         server: host,
         cert: Buffer.from(cert, "hex").toString("utf-8"),
         macaroon,
       });
+      console.debug("rpc:", rpc);
 
       // Verify we have permission to do a bunch of stuff
       const { identityPubkey: pubkey } = await rpc.getInfo();
