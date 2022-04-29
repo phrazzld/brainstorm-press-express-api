@@ -38,13 +38,13 @@ class NodeManager extends EventEmitter {
       console.debug("Creating an LN RPC...");
       const rpc = await createLnRpc({
         server: host,
-        tls: false,
-        //cert: Buffer.from(cert, "hex").toString("utf-8"),
+        cert: Buffer.from(cert, "hex").toString("utf-8"),
         macaroon,
       });
       console.debug("rpc:", rpc);
 
       // Verify we have permission to do a bunch of stuff
+      console.debug("Getting info from RPC connection...");
       const { identityPubkey: pubkey } = await rpc.getInfo();
       console.debug("pubkey:", pubkey);
 
