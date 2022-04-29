@@ -46,22 +46,30 @@ class NodeManager extends EventEmitter {
 
       // Verify we have permission to do a bunch of stuff
       const { identityPubkey: pubkey } = await rpc.getInfo();
+      console.debug("pubkey:", pubkey);
 
+      console.debug("Checking channel balance...");
       await rpc.channelBalance();
 
+      console.debug("Adding an invoice...");
       const { rHash } = await rpc.addInvoice({ value: "1" });
+      console.debug("rHash:", rHash);
 
+      console.debug("Looking up invoice by rHash...");
       await rpc.lookupInvoice({ rHash });
 
       // Listen for payments from LN
+      console.debug("Attaching payment listener...");
       this.listenForPayments(rpc, pubkey);
 
       // Store this RPC connection in the in-memory list
+      console.debug("Storing this RPC connection in the in-memory list...");
       this._lnNodes[token] = rpc;
 
       // Return this node's token for future requests
       return { token, pubkey };
     } catch (err) {
+      console.error(err);
       // Remove the connection from the cache since it is not valid
       if (this._lnNodes[token]) {
         delete this._lnNodes[token];
@@ -89,7 +97,12 @@ class NodeManager extends EventEmitter {
   // Listen for payments made to the node.
   // When a payment is settled, emit the `invoicePaid` event to notify listeners.
   listenForPayments = (rpc: LnRpc, pubkey: string) => {
+    console.debug("listenForPayments");
+    console.debug("rpc:", rpc);
+    console.debug("pubkey:", pubkey);
+    console.debug("Subscribing to invoices...");
     const stream = rpc.subscribeInvoices();
+    console.debug("stream:", stream);
     stream.on("data", (invoice) => {
       if (invoice.settled) {
         const hash = (invoice.rHash as Buffer).toString("base64");
